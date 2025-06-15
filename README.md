@@ -81,6 +81,7 @@ python ipixelcli.py -a 4B:1E:2E:35:73:A3 -c set_brightness value=20 -c send_text
 ### `set_rhythm_mode`
 
 **Description:** Set the rhythm mode of the device (Frequency).
+
 **Parameters:**
 
 - `style` (int): Style (0-4). Default: 0
