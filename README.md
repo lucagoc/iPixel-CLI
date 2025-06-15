@@ -19,9 +19,8 @@ Tested only on a 96x16 display, but should work on other sizes (if not please op
 - [x] ✅ Maintain connection to the device (WebSocket server)
 - [x] 🔧 Change orientation
 - [x] 🔧 Set the date
-- [X] 🔧 Set the clock
-
-- [ ] 🔈 Audio mode
+- [x] 🔧 Set the clock
+- [x] 🔈 Rhythm mode
 - [ ] 🔒 Set password
 
 ## Installation
@@ -76,6 +75,27 @@ python ipixelcli.py -a 4B:1E:2E:35:73:A3 -c set_brightness value=20 -c send_text
 - `date` (str): Date in `DD/MM/YYYY` format. Default: current date
 - `show_date` (bool): Show date (true/false). Default: true
 - `format_24` (bool): 24-hour format (true/false). Default: true
+
+---
+
+### `set_rhythm_mode`
+
+**Description:** Set the rhythm mode of the device (Frequency).
+**Parameters:**
+
+- `style` (int): Style (0-4). Default: 0
+- `l1` to `l11` (int): Levels for each channel (0-15). Default: 0 for all channels
+
+---
+
+### `set_rhythm_mode_2`
+
+**Description:** Set the rhythm mode of the device (Simple animation).
+
+**Parameters:**
+
+- `style` (int): Style (0-1). Default: 0
+- `t` (int): Frame time of the animation (0-7). Default: 0
 
 ---
 

@@ -10,6 +10,8 @@ COMMANDS = {
     "clear": clear,
     "set_brightness": set_brightness,
     "set_clock_mode": set_clock_mode,
+    "set_rhythm_mode": set_rhythm_mode,
+    "set_rhythm_mode_2": set_rhythm_mode_2,
     "set_time": set_time,
     "set_fun_mode": set_fun_mode,
     "set_pixel": set_pixel,
