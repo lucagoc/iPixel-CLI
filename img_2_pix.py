@@ -80,9 +80,10 @@ def char_to_hex(character: str, offset=(0, 3), size=16, font_path="font/default"
         cache_file = os.path.join(cache_dir, f"{ord(character):04X}.png")
         
         if os.path.exists(cache_file):
+            # Use cached image
             img_rgb = Image.open(cache_file)
         else:
-            # Générer l'image
+            # Generate image
             img = Image.new('1', (9, 16), 0)  # '1' : Disable antialiasing
             d = ImageDraw.Draw(img)
             d.text(offset, character, fill=1, font=ImageFont.truetype(font_path, size))
