@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 from bit_tools import *
-from img_2_pix import image_to_rgb_string, charimg_to_hex_string
+from img_2_pix import image_to_rgb_string, char_to_hex
 
 
 # Utility functions
@@ -49,8 +51,8 @@ def encode_text(text, color="ffffff"):
     """Encode text to be displayed on the device."""
     return "".join(
         "80" + color + "0a10" + logic_reverse_bits_order(
-            switch_endian(invert_frames(charimg_to_hex_string(get_char_file(char))))
-        ) for char in text.lower()
+            switch_endian(invert_frames(char_to_hex(char)))
+        ) for char in text
     ).lower()
 
 # Commands

@@ -2,3 +2,4 @@ archive
 __pycache__/
 animations/output_animation.gif
 *.bak
+font/cache
