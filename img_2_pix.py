@@ -3,6 +3,20 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
+def get_font_path(font):
+    """Get the path to the font directory or file."""
+    # if file ttf exists
+    if os.path.isfile("font/" + font + ".ttf"):
+        return "font/" + font + ".ttf"
+    # if folder exists
+    elif os.path.isdir("font/" + font):
+        return "font/" + font
+    # else return default font
+    else:
+        print(f"[WARNING] Font '{font}' not found. Using default font.")
+        return "font/default"
+    
+
 # Convert an image to a string of hexadecimal values
 def image_to_rgb_string(image_path):
     try:
@@ -51,10 +65,11 @@ def charimg_to_hex_string(img):
     return hex_string
 
 # Do not forget to delete the cache folder if you change the font or its size !
-def char_to_hex(character: str, offset=(0, 3), size=16, font_path="font/default") -> str:
+def char_to_hex(character: str, offset=(0, 0), size=16, font="default") -> str:
     """
     Convert a character to its hexadecimal representation with an optional offset.
     """
+    font_path = get_font_path(font)
 
     try:
         # Folder

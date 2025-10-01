@@ -177,6 +177,9 @@ None
 - `save_slot` (int): Save slot for the text (1-10). Default: 1
 - `speed` (int): Speed of the text animation (0-100). Default: 80
 - `color` (str): Hexadecimal color value. Default: `ffffff`
+- `font` (str): Font name (without extension) located in the `fonts` folder. Default: `default`
+- `font_offset_x` (int): Horizontal offset for the font. Default: 0
+- `font_offset_y` (int): Vertical offset for the font. Default: 0
 
 ---
 
@@ -234,9 +237,21 @@ For example :
 }
 ```
 
-## Font generation
+## Custom font
 
-Edit the `all.png` file in the font folder to change characters. Then run `gen_font.py` to get the trimmed characters.
+You can use a custom font by adding it to the fonts directory. This can be either:
+
+- a `.ttf` font file, or
+- a folder containing individual letter PNG files (see the `fonts/default` folder for reference). Files must be named using the Unicode code point of the character in hexadecimal (e.g., `0041.png` for 'A').
+
+Then, specify the font name (without the file extension) with the `font` argument in the `send_text` command.
+For `.ttf` files, adjust the font size and offset with `font_size`, `font_offset_x`, `font_offset_y` if necessary.
+For best results, it is recommended to use a monospace font.
+
+---
+> ⚠️ The `fonts/cache` folder must be deleted if you change font offset or size.
+---
+> 💡 You can use the generated `fonts/cache` folder as a starting point for creating your own custom fonts from an existing font.
 
 ## Contributing
 

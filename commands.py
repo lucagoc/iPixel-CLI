@@ -47,11 +47,11 @@ def get_char_file(char):
     return f"font/generated/{special_chars.get(char, char)}.png"
 
 
-def encode_text(text, color="ffffff"):
+def encode_text(text, color="ffffff", font="default", font_offset=(0,0), font_size=16):
     """Encode text to be displayed on the device."""
     return "".join(
         "80" + color + "0a10" + logic_reverse_bits_order(
-            switch_endian(invert_frames(char_to_hex(char)))
+            switch_endian(invert_frames(char_to_hex(char, font=font, offset=font_offset, size=font_size)))
         ) for char in text
     ).lower()
 
@@ -199,13 +199,15 @@ def set_pixel(x, y, color):
     return bytes.fromhex("0a00050100") + bytes.fromhex(color) + bytes.fromhex(int_to_hex(x) + int_to_hex(y))
 
 
-def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff"):
+def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=16):
     """Send a text to the device with configurable parameters."""
     
     rainbow_mode = to_int(rainbow_mode, "rainbow mode")
     animation = to_int(animation, "animation")
     save_slot = to_int(save_slot, "save slot")
     speed = to_int(speed, "speed")
+    font_offset_x = to_int(font_offset_x, "font offset x")
+    font_offset_y = to_int(font_offset_y, "font offset y")
     
     for param, min_val, max_val, name in [
         (rainbow_mode, 0, 9, "Rainbow mode"),
@@ -229,7 +231,7 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     number_of_characters = int_to_hex(len(text))      # Number of characters
     
     properties = f"000101{int_to_hex(animation)}{int_to_hex(speed)}{int_to_hex(rainbow_mode)}ffffff00000000"
-    characters = encode_text(text, color)
+    characters = encode_text(text, color, font, (font_offset_x, font_offset_y), font_size)
     checksum = CRC32_checksum(number_of_characters + properties + characters)
 
     return bytes.fromhex(header + checksum + save_slot_hex + number_of_characters + properties + characters)
