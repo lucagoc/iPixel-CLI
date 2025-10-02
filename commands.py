@@ -2,7 +2,7 @@
 
 import datetime
 from bit_tools import *
-from img_2_pix import char_to_hex
+from img_2_pix import char_to_hex, CARACTER_HEIGHT, CARACTER_WIDTH
 
 
 # Utility functions
@@ -36,21 +36,10 @@ def validate_range(value, min_val, max_val, name):
         raise ValueError(f"{name} must be between {min_val} and {max_val}")
 
 
-# Text encoding
-def get_char_file(char):
-    """Get the file path for a character."""
-    special_chars = {
-        "!": "bang", ".": "point", " ": "space", "'": "apostrophe",
-        "-": "dash", "_": "underscore", "/": "slash", "\\": "backslash",
-        "|": "pipe", ":": "colon"
-    }
-    return f"font/generated/{special_chars.get(char, char)}.png"
-
-
-def encode_text(text, color="ffffff", font="default", font_offset=(0,0), font_size=16):
+def encode_text(text: str, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> str:
     """Encode text to be displayed on the device."""
     return "".join(
-        "80" + color + "0a10" + logic_reverse_bits_order(
+        "80" + color + int_to_hex(CARACTER_WIDTH) + int_to_hex(CARACTER_HEIGHT) + logic_reverse_bits_order(
             switch_endian(invert_frames(char_to_hex(char, font=font, offset=font_offset, size=font_size)))
         ) for char in text
     ).lower()

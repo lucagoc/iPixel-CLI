@@ -3,22 +3,28 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-def get_font_path(font):
+CARACTER_WIDTH = 9
+CARACTER_HEIGHT = 16
+
+def get_font_path(font_name: str) -> str:
     """Get the path to the font directory or file."""
     # if file ttf exists
-    if os.path.isfile("font/" + font + ".ttf"):
-        return "font/" + font + ".ttf"
+    if os.path.isfile("font/" + font_name + ".ttf"):
+        return "font/" + font_name + ".ttf"
     # if folder exists
-    elif os.path.isdir("font/" + font):
-        return "font/" + font
+    elif os.path.isdir("font/" + font_name):
+        return "font/" + font_name
     # else return default font
     else:
-        print(f"[WARNING] Font '{font}' not found. Using default font.")
+        print(f"[WARNING] Font '{font_name}' not found. Using default font.")
         return "font/default"
     
 
-# Convert an image to a string of hexadecimal values
-def image_to_rgb_string(image_path):
+def image_to_rgb_string(image_path: str) -> str:
+    """
+    Convert an image to a hexadecimal RGB string.
+    :param image_path: The path to the image file.
+    """
     try:
         img = Image.open(image_path)
         img = img.convert('RGB')
@@ -37,27 +43,27 @@ def image_to_rgb_string(image_path):
         print(f"[ERROR] : {e}")
         return None
 
-# Create an hex frame from a 9x16 character img
-# For 16 lines, convert the first 9 pixels to a 2 bytes hex value
-# bit shift the 9 bits to the left by 7.
-# if the pixel is white, add 1 bit, else add 0
-def charimg_to_hex_string(img):
+def charimg_to_hex_string(img: Image) -> str:
+    """
+    Convert a character image to a hexadecimal string.
+    """
+
     # Load the image
     img = img.convert("L")
 
-    # Check if the image is 9x16 pixels
-    if img.size != (9, 16):
-        raise ValueError("The image must be 9x16 pixels")
+    # Check if the image is CARACTER_WIDTH x CARACTER_HEIGHT pixels
+    if img.size != (CARACTER_WIDTH, CARACTER_HEIGHT):
+        raise ValueError("The image must be " + str(CARACTER_WIDTH) + "x" + str(CARACTER_HEIGHT) + " pixels")
 
     hex_string = ""
 
-    for y in range(16):
+    for y in range(CARACTER_HEIGHT):
         line_value = 0
 
-        for x in range(9):
+        for x in range(CARACTER_WIDTH):
             pixel = img.getpixel((x, y))
             if pixel > 0:
-                line_value |= (1 << (15 - x))  # Move the bit to the left by 7
+                line_value |= (1 << (CARACTER_HEIGHT - 1 - x))  # Move the bit to the left by 7
 
         # Convert the value to a 4 bytes hex string
         hex_string += f"{line_value:04X}"
@@ -65,7 +71,7 @@ def charimg_to_hex_string(img):
     return hex_string
 
 # Do not forget to delete the cache folder if you change the font or its size !
-def char_to_hex(character: str, offset=(0, 0), size=16, font="default") -> str:
+def char_to_hex(character: str, offset=(0, 0), size=CARACTER_HEIGHT, font="default") -> str:
     """
     Convert a character to its hexadecimal representation with an optional offset.
     """
@@ -81,7 +87,7 @@ def char_to_hex(character: str, offset=(0, 0), size=16, font="default") -> str:
             else:
                 print(f"[WARNING] Cannot find PNG file : {png_file}, using a white image.")
                 # Create a white 9x16 image
-                img_rgb = Image.new('RGB', (9, 16), (255, 255, 255))
+                img_rgb = Image.new('RGB', (CARACTER_WIDTH, CARACTER_HEIGHT), (255, 255, 255))
                 return charimg_to_hex_string(img_rgb)
         
         # Else, check the font cache system
@@ -99,7 +105,7 @@ def char_to_hex(character: str, offset=(0, 0), size=16, font="default") -> str:
             img_rgb = Image.open(cache_file)
         else:
             # Generate image
-            img = Image.new('1', (9, 16), 0)  # '1' : Disable antialiasing
+            img = Image.new('1', (CARACTER_WIDTH, CARACTER_HEIGHT), 0)  # '1' : Disable antialiasing
             d = ImageDraw.Draw(img)
             d.text(offset, character, fill=1, font=ImageFont.truetype(font_path, size))
 
