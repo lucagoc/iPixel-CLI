@@ -2,7 +2,7 @@ import json
 import asyncio
 import argparse
 import websockets
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
 from commands import *
 
 COMMANDS = {
@@ -111,21 +111,41 @@ async def execute_command(command_name, params, address):
         else:
             print(f"[ERROR] Unknown command: {command_name}")
 
+async def scan_devices():
+    print("[INFO] Scanning for Bluetooth devices...")
+    devices = await BleakScanner.discover()
+    if devices:
+        led_devices = [device for device in devices if device.name and "LED" in device.name]
+        print(f"[INFO] Found {len(led_devices)} device(s):")
+        for device in led_devices:
+            print(f"  - {device.name} ({device.address})")
+    else:
+        print("[INFO] No Bluetooth devices found.")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WebSocket BLE Server")
     parser.add_argument("-s", "--server", action="store_true", help="Run as WebSocket server")
+    parser.add_argument("--scan", action="store_true", help="Scan for Bluetooth devices")
     parser.add_argument("-p", "--port", type=int, default=4444, help="Specify the port for the server")
     parser.add_argument(
         "-c", "--command", action="append", nargs="+", metavar="COMMAND PARAMS",
         help="Execute a specific command with parameters. Can be used multiple times."
     )
-    parser.add_argument("-a", "--address", required=True, help="Specify the Bluetooth device address")
+    parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
 
     args = parser.parse_args()
 
-    if args.server:
+    if args.scan:
+        asyncio.run(scan_devices())
+    elif args.server:
+        if not args.address:
+            print("[ERROR] --address is required when using --server")
+            exit(1)
         asyncio.run(start_server("localhost", args.port, args.address))
     elif args.command:
+        if not args.address:
+            print("[ERROR] --address is required when using --command")
+            exit(1)
         asyncio.run(run_multiple_commands(args.command, args.address))
     else:
-        print("[ERROR] No mode specified. Use --server or -c with -a to specify an address.")
+        print("[ERROR] No mode specified. Use --scan, --server or -c with -a to specify an address.")

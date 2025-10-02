@@ -49,6 +49,16 @@ This tool is still experimental, use at your own risk.
 
 Commands are executed using the following format:
 
+### Getting started
+
+Find the MAC address of your device using the `--scan` option:
+
+```bash
+python ipixelcli.py --scan
+```
+
+Then, use the `-a` option to specify the MAC address of your device, and the `-c` option to specify the command to execute:
+
 ```bash
 python ipixelcli.py -a <DEVICE_MAC_ADDRESS> -c <COMMAND> [PARAMETERS]
 ```
