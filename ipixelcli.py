@@ -2,7 +2,6 @@ import json
 import asyncio
 import argparse
 import websockets
-from websockets.server import serve
 from bleak import BleakClient
 from commands import *
 
@@ -26,7 +25,7 @@ COMMANDS = {
 }
 
 # Socket server
-async def handle_websocket(websocket, path, address):
+async def handle_websocket(websocket, address):
     async with BleakClient(address) as client:
         print("[INFO] Connected to the device")
         try:
@@ -72,7 +71,7 @@ async def handle_websocket(websocket, path, address):
             print("[INFO] Websocket connection has been closed")
 
 async def start_server(ip, port, address):
-    server = await serve(lambda ws, path: handle_websocket(ws, path, address), ip, port)
+    server = await websockets.serve(lambda ws: handle_websocket(ws, address), ip, port)
     print(f"WebSocket server started on ws://{ip}:{port}")
     await server.wait_closed()
 
