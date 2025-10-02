@@ -2,7 +2,7 @@
 
 import datetime
 from bit_tools import *
-from img_2_pix import image_to_rgb_string, char_to_hex
+from img_2_pix import char_to_hex
 
 
 # Utility functions
@@ -199,6 +199,16 @@ def set_pixel(x, y, color):
     return bytes.fromhex("0a00050100") + bytes.fromhex(color) + bytes.fromhex(int_to_hex(x) + int_to_hex(y))
 
 
+def led_off():
+    """Turn the LED off."""
+    return bytes.fromhex("0500070100")
+
+
+def led_on():
+    """Turn the LED on."""
+    return bytes.fromhex("0500070101")
+
+
 def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=16):
     """Send a text to the device with configurable parameters."""
     
@@ -237,10 +247,16 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     return bytes.fromhex(header + checksum + save_slot_hex + number_of_characters + properties + characters)
 
 
-def set_screen(path):
-    """Set the screen to display an image."""
-    return bytes.fromhex("091200000000120000") + bytes.fromhex(image_to_rgb_string(path))
-
+def send_png(path_or_hex):
+    """Send a PNG image to the device."""
+    if path_or_hex.endswith(".png"):
+        with open(path_or_hex, "rb") as f:
+            png_hex = f.read().hex()
+    else:
+        png_hex = path_or_hex
+    checksum = CRC32_checksum(png_hex)
+    size = get_frame_size(png_hex, 8)
+    return bytes.fromhex(f"{get_frame_size('FFFF020000' + size + checksum + '0065' + png_hex, 4)}020000{size}{checksum}0065{png_hex}")
 
 def send_animation(path_or_hex):
     """Send a GIF animation to the device."""

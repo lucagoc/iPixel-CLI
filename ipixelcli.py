@@ -17,10 +17,12 @@ COMMANDS = {
     "set_pixel": set_pixel,
     "delete_screen": delete_screen,
     "send_text": send_text,
-    "set_screen": set_screen,
     "set_speed" : set_speed,
     "send_animation": send_animation,
-    "set_orientation": set_orientation
+    "set_orientation": set_orientation,
+    "send_png": send_png,
+    "led_on": led_on,
+    "led_off": led_off
 }
 
 # Socket server

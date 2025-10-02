@@ -184,13 +184,13 @@ None
 
 ---
 
-### `set_screen`
+### `send_png`
 
-**Description:** Set the screen to display an image. (EXPERIMENTAL)
+**Description:** Set the screen to display an image.
 
 **Parameters:**
 
-- `path` (str): Path to the image file.
+- `path_or_hex` (str): Path to the image PNG file or its hexadecimal representation.
 
 ---
 
@@ -211,6 +211,22 @@ None
 **Parameters:**
 
 - `n` (int): Index of the screen to delete.
+
+---
+
+### `led_on`
+
+**Description:** Turn the LED on.
+
+**Parameters:** None
+
+---
+
+### `led_off`
+
+**Description:** Turn the LED off.
+
+**Parameters:** None
 
 ## WebSocket server
 
