@@ -188,6 +188,7 @@ None
 - `speed` (int): Speed of the text animation (0-100). Default: 80
 - `color` (str): Hexadecimal color value. Default: `ffffff`
 - `font` (str): Font name (without extension) located in the `fonts` folder. Default: `default`
+- **`matrix_height`** (int): ⚠️ Height of the LED matrix (16, 20, 24). Default: 16
 - `font_size` (int): font size (`.ttf` only)
 - `font_offset_x` (int): Horizontal offset for the font (`.ttf` only). Default: 0
 - `font_offset_y` (int): Vertical offset for the font (`.ttf` only). Default: 0

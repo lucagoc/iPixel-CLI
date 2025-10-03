@@ -2,7 +2,7 @@
 
 import datetime
 from bit_tools import *
-from img_2_pix import char_to_hex, CARACTER_HEIGHT, CARACTER_WIDTH
+from img_2_pix import char_to_hex
 
 
 # Utility functions
@@ -36,13 +36,16 @@ def validate_range(value, min_val, max_val, name):
         raise ValueError(f"{name} must be between {min_val} and {max_val}")
 
 
-def encode_text(text: str, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> str:
+def encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> str:
     """Encode text to be displayed on the device."""
-    return "".join(
-        "80" + color + int_to_hex(CARACTER_WIDTH) + int_to_hex(CARACTER_HEIGHT) + logic_reverse_bits_order(
-            switch_endian(invert_frames(char_to_hex(char, font=font, offset=font_offset, size=font_size)))
-        ) for char in text
-    ).lower()
+    result = ""
+    for char in text:
+        char_hex, char_width = char_to_hex(char, matrix_height, font=font, font_offset=font_offset, font_size=font_size)
+        if char_hex:
+            result += "80" + color + int_to_hex(char_width) + int_to_hex(matrix_height) + logic_reverse_bits_order(
+                switch_endian(invert_frames(char_hex))
+            )
+    return result.lower()
 
 # Commands
 def set_clock_mode(style=1, date="", show_date=True, format_24=True):
@@ -198,7 +201,7 @@ def led_on():
     return bytes.fromhex("0500070101")
 
 
-def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=16):
+def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=0, matrix_height=16):
     """Send a text to the device with configurable parameters."""
     
     rainbow_mode = to_int(rainbow_mode, "rainbow mode")
@@ -207,16 +210,24 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     speed = to_int(speed, "speed")
     font_offset_x = to_int(font_offset_x, "font offset x")
     font_offset_y = to_int(font_offset_y, "font offset y")
+    font_size = to_int(font_size, "font size")
+    matrix_height = to_int(matrix_height, "matrix height")
     
     for param, min_val, max_val, name in [
         (rainbow_mode, 0, 9, "Rainbow mode"),
         (animation, 0, 7, "Animation"),
         (save_slot, 1, 10, "Save slot"),
         (speed, 0, 100, "Speed"),
-        (len(text), 1, 100, "Text length")
+        (len(text), 1, 100, "Text length"),
+        (matrix_height, 1, 512, "Matrix height")
     ]:
         validate_range(param, min_val, max_val, name)
 
+    # Apply default font size if not specified
+    if font_size == 0:
+        font_size = matrix_height
+
+    # Disable unsupported animations (bootloop)
     if animation == 3 or animation == 4:
         raise ValueError("Invalid animation for text display")
 
@@ -230,7 +241,7 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     number_of_characters = int_to_hex(len(text))      # Number of characters
     
     properties = f"000101{int_to_hex(animation)}{int_to_hex(speed)}{int_to_hex(rainbow_mode)}ffffff00000000"
-    characters = encode_text(text, color, font, (font_offset_x, font_offset_y), font_size)
+    characters = encode_text(text, matrix_height, color, font, (font_offset_x, font_offset_y), font_size)
     checksum = CRC32_checksum(number_of_characters + properties + characters)
 
     return bytes.fromhex(header + checksum + save_slot_hex + number_of_characters + properties + characters)
