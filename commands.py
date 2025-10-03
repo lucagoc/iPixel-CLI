@@ -39,12 +39,15 @@ def validate_range(value, min_val, max_val, name):
 def encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> str:
     """Encode text to be displayed on the device."""
     result = ""
+    matrix_height_hex = f"{matrix_height:02x}"
+    
     for char in text:
         char_hex, char_width = char_to_hex(char, matrix_height, font=font, font_offset=font_offset, font_size=font_size)
+        char_hex_converted = logic_reverse_bits_order(switch_endian(invert_frames(char_hex)))
+        char_width_hex = f"{char_width:02x}"
         if char_hex:
-            result += "80" + color + int_to_hex(char_width) + int_to_hex(matrix_height) + logic_reverse_bits_order(
-                switch_endian(invert_frames(char_hex))
-            )
+            result += "80" + color +  char_width_hex + matrix_height_hex + char_hex_converted
+            print(result)
     return result.lower()
 
 # Commands
@@ -219,7 +222,7 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
         (save_slot, 1, 10, "Save slot"),
         (speed, 0, 100, "Speed"),
         (len(text), 1, 100, "Text length"),
-        (matrix_height, 1, 512, "Matrix height")
+        (matrix_height, 1, 128, "Matrix height")
     ]:
         validate_range(param, min_val, max_val, name)
 

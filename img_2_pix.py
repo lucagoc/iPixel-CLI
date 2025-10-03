@@ -56,18 +56,28 @@ def charimg_to_hex_string(img: Image) -> str:
 
     for y in range(char_height):
         line_value = 0
+        line_value_2 = 0
 
         for x in range(char_width):
             pixel = img.getpixel((x, y))
             if pixel > 0:
-                line_value |= (1 << (char_height - 1 - x))  # Move the bit to the left by 7
+                if x < 16:
+                    line_value |= (1 << (15 - x))
+                else:
+                    line_value_2 |= (1 << (31 - x))
+
+        # Merge line_value_2 into line_value for 32-bit value
+        line_value = (line_value_2 << 16) | line_value
 
         # Convert the value to a 4 bytes hex string
         hex_string += f"{line_value:04X}"
+        
+        # Print the line value for debugging
+        binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
+        print(binary_str)
 
     return hex_string, char_width
 
-# Do not forget to delete the cache folder if you change the font or its size !
 def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size=16, font="default") -> tuple[str, int]:
     """
     Convert a character to its hexadecimal representation with an optional offset.

@@ -12,18 +12,18 @@ def invert_frames(hex_string: str) -> str:
 def switch_endian(hex_string: str) -> str:
     """Switch the endian of a hexadecimal string."""
     if len(hex_string) % 2 != 0:
-        raise ValueError("La longueur de la chaîne hexadécimale doit être paire.")
+        raise ValueError("The length of the hexadecimal string must be even.")
 
-    octets = [hex_string[i:i+2] for i in range(0, len(hex_string), 2)]
-    octets.reverse()
-    return ''.join(octets)
+    hex_pairs = [hex_string[i:i+2] for i in range(0, len(hex_string), 2)]
+    hex_pairs.reverse()
+    return ''.join(hex_pairs)
 
 def logic_not_hex(hex_string: str) -> str:
     """Apply the NOT logic on each character of a hexadecimal string."""
     # Split the string into 2 characters
-    octets = [hex_string[i:i+2] for i in range(0, len(hex_string), 2)]
+    hex_pairs = [hex_string[i:i+2] for i in range(0, len(hex_string), 2)]
     # Apply the NOT logic on each character
-    inverted = [f"{~int(octet, 16) & 0xFF:02x}" for octet in octets]
+    inverted = [f"{~int(octet, 16) & 0xFF:02x}" for octet in hex_pairs]
     return ''.join(inverted)
 
 def reverse_bits_16(n):
@@ -37,7 +37,8 @@ def reverse_bits_16(n):
 def logic_reverse_bits_order(hex_string):
     """Reverse the bit order of each 16-bit chunk in a hexadecimal string."""
     if len(hex_string) % 4 != 0:
-        raise ValueError("La chaîne hexadécimale doit avoir une longueur multiple de 4 (2 octets).")
+        print(f"[ERROR] Length of hex string: {len(hex_string)} \n{hex_string}")
+        raise ValueError("The hexadecimal string must have a length that is a multiple of 4 (2 bytes).")
     
     result = []
     
