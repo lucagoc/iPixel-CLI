@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import binascii
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 def invert_frames(hex_string: str) -> str:
     """Invert the frames of a hexadecimal string."""
@@ -37,7 +40,7 @@ def reverse_bits_16(n):
 def logic_reverse_bits_order(hex_string):
     """Reverse the bit order of each 16-bit chunk in a hexadecimal string."""
     if len(hex_string) % 4 != 0:
-        print(f"[ERROR] Length of hex string: {len(hex_string)} \n{hex_string}")
+        logger.error(f"Length of hex string: {len(hex_string)} \n{hex_string}")
         raise ValueError("The hexadecimal string must have a length that is a multiple of 4 (2 bytes).")
     
     result = []
@@ -66,12 +69,6 @@ def CRC32_checksum(data):
     calculated_crc_hex = f"{calculated_crc:08x}"
     # Send the checksum by switching endian
     return switch_endian(calculated_crc_hex)
-
-# DEBUG
-def print_hex(hex_string: str):
-    """Print a hexadecimal string in a human-readable format."""
-    octets = [hex_string[i:i+4] for i in range(0, len(hex_string), 4)]
-    print(' '.join(octets))
 
 def print_character_from_hex(hex_string: str):
     """Print a character representation of a hexadecimal string."""

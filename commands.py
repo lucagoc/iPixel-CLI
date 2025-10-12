@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from logging import getLogger
 from bit_tools import *
 from img_2_pix import char_to_hex
 
+logger = getLogger(__name__)
 
 # Utility functions
 def to_bool(value):
@@ -47,7 +49,10 @@ def encode_text(text: str, matrix_height: int, color: str, font: str, font_offse
         char_width_hex = f"{char_width:02x}"
         if char_hex:
             result += "80" + color +  char_width_hex + matrix_height_hex + char_hex_converted
-            print(result)
+            
+            # Debugging output
+            logger.debug(result)
+            
     return result.lower()
 
 # Commands
@@ -247,7 +252,10 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     characters = encode_text(text, matrix_height, color, font, (font_offset_x, font_offset_y), font_size)
     checksum = CRC32_checksum(number_of_characters + properties + characters)
 
-    return bytes.fromhex(header + checksum + save_slot_hex + number_of_characters + properties + characters)
+    total = header + checksum + save_slot_hex + number_of_characters + properties + characters
+    logger.debug(f"Full command data: \n{total}")
+
+    return bytes.fromhex(total)
 
 
 def send_png(path_or_hex):

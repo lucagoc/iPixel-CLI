@@ -281,6 +281,10 @@ For best results, it is recommended to use a monospace font.
 ---
 > 💡 You can use the generated `fonts/cache` folder as a starting point for creating your own custom fonts from an existing font.
 
+## Other
+
+> 💡 If your terminal doesn't support emojis, you can disable them with the `--noemojis` flag.
+
 ## Contributing
 
 Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a pull request.

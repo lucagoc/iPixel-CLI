@@ -2,8 +2,39 @@ import json
 import asyncio
 import argparse
 import websockets
+import logging
 from bleak import BleakClient, BleakScanner
 from commands import *
+
+class EmojiFormatter(logging.Formatter):
+    EMOJI_MAP = {
+        'DEBUG': '🔍',
+        'INFO': 'ℹ️',
+        'WARNING': '⚠️',
+        'ERROR': '❌',
+        'CRITICAL': '🔥'
+    }
+    
+    def format(self, record):
+        emoji = self.EMOJI_MAP.get(record.levelname, '📝')
+        record.levelname = f"{emoji}"
+        return super().format(record)
+
+def setup_logging(use_emojis=True):
+    log_format = '%(levelname)s [%(asctime)s] [%(name)s] %(message)s'
+    date_format = '%Y-%m-%d %H:%M:%S'
+    
+    if use_emojis:
+        formatter = EmojiFormatter(log_format, datefmt=date_format)
+    else:
+        formatter = logging.Formatter(log_format, datefmt=date_format)
+    
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    
+    logging.basicConfig(level=logging.DEBUG, handlers=[handler])
+
+logger = logging.getLogger(__name__)
 
 COMMANDS = {
     "clear": clear,
@@ -27,7 +58,7 @@ COMMANDS = {
 # Socket server
 async def handle_websocket(websocket, address):
     async with BleakClient(address) as client:
-        print("[INFO] Connected to the device")
+        logger.info("Connected to the device")
         try:
             while True:
                 # Wait for a message from the client
@@ -68,11 +99,11 @@ async def handle_websocket(websocket, address):
                 # Send the response to the client
                 await websocket.send(json.dumps(response))
         except websockets.ConnectionClosed:
-            print("[INFO] Websocket connection has been closed")
+            logger.info("Websocket connection has been closed")
 
 async def start_server(ip, port, address):
     server = await websockets.serve(lambda ws: handle_websocket(ws, address), ip, port)
-    print(f"WebSocket server started on ws://{ip}:{port}")
+    logger.info(f"WebSocket server started on ws://{ip}:{port}")
     await server.wait_closed()
 
 def build_command_args(params):
@@ -88,7 +119,7 @@ def build_command_args(params):
 
 async def run_multiple_commands(commands, address):
     async with BleakClient(address) as client:
-        print("[INFO] Connected to the device")
+        logger.info("Connected to the device")
         for cmd in commands:
             command_name = cmd[0]
             params = cmd[1:]
@@ -96,31 +127,31 @@ async def run_multiple_commands(commands, address):
                 positional_args, keyword_args = build_command_args(params)
                 data = COMMANDS[command_name](*positional_args, **keyword_args)
                 await client.write_gatt_char("0000fa02-0000-1000-8000-00805f9b34fb", data)
-                print(f"[INFO] Command '{command_name}' executed successfully.")
+                logger.info(f"Command '{command_name}' executed successfully.")
             else:
-                print(f"[ERROR] Unknown command: {command_name}")
+                logger.error(f"Unknown command: {command_name}")
 
 async def execute_command(command_name, params, address):
     async with BleakClient(address) as client:
-        print("[INFO] Connected to the device")
+        logger.info("Connected to the device")
         if command_name in COMMANDS:
             positional_args, keyword_args = build_command_args(params)
             data = COMMANDS[command_name](*positional_args, **keyword_args)
             await client.write_gatt_char("0000fa02-0000-1000-8000-00805f9b34fb", data)
-            print(f"[INFO] Command '{command_name}' executed successfully.")
+            logger.info(f"Command '{command_name}' executed successfully.")
         else:
-            print(f"[ERROR] Unknown command: {command_name}")
+            logger.error(f"Unknown command: {command_name}")
 
 async def scan_devices():
-    print("[INFO] Scanning for Bluetooth devices...")
+    logger.info("Scanning for Bluetooth devices...")
     devices = await BleakScanner.discover()
     if devices:
         led_devices = [device for device in devices if device.name and "LED" in device.name]
-        print(f"[INFO] Found {len(led_devices)} device(s):")
+        logger.info(f"Found {len(led_devices)} device(s):")
         for device in led_devices:
-            print(f"  - {device.name} ({device.address})")
+            logger.info(f"  - {device.name} ({device.address})")
     else:
-        print("[INFO] No Bluetooth devices found.")
+        logger.info("No Bluetooth devices found.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WebSocket BLE Server")
@@ -132,20 +163,23 @@ if __name__ == "__main__":
         help="Execute a specific command with parameters. Can be used multiple times."
     )
     parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
+    parser.add_argument("--noemojis", action="store_true", help="Disable emojis in log output")
 
     args = parser.parse_args()
+    
+    setup_logging(use_emojis=not args.noemojis)
 
     if args.scan:
         asyncio.run(scan_devices())
     elif args.server:
         if not args.address:
-            print("[ERROR] --address is required when using --server")
+            logger.error("--address is required when using --server")
             exit(1)
         asyncio.run(start_server("localhost", args.port, args.address))
     elif args.command:
         if not args.address:
-            print("[ERROR] --address is required when using --command")
+            logger.error("--address is required when using --command")
             exit(1)
         asyncio.run(run_multiple_commands(args.command, args.address))
     else:
-        print("[ERROR] No mode specified. Use --scan, --server or -c with -a to specify an address.")
+        logger.error("No mode specified. Use --scan, --server or -c with -a to specify an address.")

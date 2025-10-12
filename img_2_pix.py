@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from logging import getLogger
 from PIL import Image, ImageDraw, ImageFont
 import os
+
+logger = getLogger(__name__)
 
 def get_font_path(font_name: str) -> str:
     """Get the path to the font directory or file."""
@@ -13,7 +16,7 @@ def get_font_path(font_name: str) -> str:
         return "font/" + font_name
     # else return default font
     else:
-        print(f"[WARNING] Font '{font_name}' not found. Using default font.")
+        logger.warning(f"Font '{font_name}' not found. Using default font.")
         return "font/default"
 
 def image_to_rgb_string(image_path: str) -> str:
@@ -36,7 +39,7 @@ def image_to_rgb_string(image_path: str) -> str:
         
         return pixel_string
     except Exception as e:
-        print(f"[ERROR] : {e}")
+        logger.error(f"Error occurred while converting image to RGB string: {e}")
         return None
 
 def charimg_to_hex_string(img: Image) -> str:
@@ -74,7 +77,7 @@ def charimg_to_hex_string(img: Image) -> str:
         
         # Print the line value for debugging
         binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
-        print(binary_str)
+        logger.debug(binary_str)
 
     return hex_string, char_width
 
@@ -95,12 +98,12 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
                     img_rgb = Image.open(png_file)
                     return charimg_to_hex_string(img_rgb)
                 else:
-                    print(f"[WARNING] Cannot find PNG file : {png_file}, using a white image.")
+                    logger.warning(f"Cannot find PNG file : {png_file}, using a white image.")
                     # Create a white 9h image as fallback
                     img_rgb = Image.new('RGB', (9, matrix_height), (255, 255, 255))
                     return charimg_to_hex_string(img_rgb)
             else:
-                print(f"[WARNING] Cannot find font data for font={font} and matrix_height={matrix_height}, using a white image.")
+                logger.warning(f"Cannot find font data for font={font} and matrix_height={matrix_height}, using a white image.")
                 # Create a white 9h image as fallback
                 img_rgb = Image.new('RGB', (9, matrix_height), (255, 255, 255))
                 return charimg_to_hex_string(img_rgb)
@@ -148,5 +151,5 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
             
             return charimg_to_hex_string(img_rgb)
     except Exception as e:
-        print(f"[ERROR] : {e}")
+        logger.error(f"Error occurred while converting character to hex: {e}")
         return None, 0
