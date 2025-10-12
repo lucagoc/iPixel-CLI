@@ -239,9 +239,16 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     if animation == 3 or animation == 4:
         raise ValueError("Invalid animation for text display")
 
-    header_1 = switch_endian(hex(0x1D + len(text) * 0x26)[2:].zfill(4))
+    # Magic numbers (pls, help me find out what how they work)
+    HEADER_1_MG = 0x1D
+    HEADER_3_MG = 0xE
+    HEADER_GAP = 0x26 # Value for 16px height matrix
+    if matrix_height == 24:
+        HEADER_GAP = 0x36
+
+    header_1 = switch_endian(hex(HEADER_1_MG + len(text) * HEADER_GAP)[2:].zfill(4))
     header_2 = "000100"
-    header_3 = switch_endian(hex(0xE + len(text) * 0x26)[2:].zfill(4))
+    header_3 = switch_endian(hex(HEADER_3_MG + len(text) * HEADER_GAP)[2:].zfill(4))
     header_4 = "0000"
     header = header_1 + header_2 + header_3 + header_4
     
