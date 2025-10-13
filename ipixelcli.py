@@ -20,10 +20,11 @@ class EmojiFormatter(logging.Formatter):
         record.levelname = f"{emoji}"
         return super().format(record)
 
-def setup_logging(use_emojis=True):
+def setup_logging(use_emojis=True, verbose=False):
     log_format = '%(levelname)s [%(asctime)s] [%(name)s] %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
-    
+    level = logging.DEBUG if verbose else logging.INFO
+
     if use_emojis:
         formatter = EmojiFormatter(log_format, datefmt=date_format)
     else:
@@ -32,7 +33,7 @@ def setup_logging(use_emojis=True):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     
-    logging.basicConfig(level=logging.INFO, handlers=[handler])
+    logging.basicConfig(level=level, handlers=[handler])
 
 logger = logging.getLogger(__name__)
 
@@ -56,22 +57,17 @@ COMMANDS = {
 }
 
 # Socket server
-async def handle_websocket(websocket, address):
-    async with BleakClient(address) as client:
-        logger.info("Connected to the device")
+async def handle_websocket(websocket, address, dry_run=False):
+    if dry_run:
+        logger.info("[DRY-RUN] Websocket server simulation, no BLE connection.")
         try:
             while True:
-                # Wait for a message from the client
                 message = await websocket.recv()
-
-                # Parse JSON
                 try:
                     command_data = json.loads(message)
                     command_name = command_data.get("command")
                     params = command_data.get("params", [])
-
                     if command_name in COMMANDS:
-                        # Separate positional and keyword arguments
                         positional_args = []
                         keyword_args = {}
                         for param in params:
@@ -80,29 +76,62 @@ async def handle_websocket(websocket, address):
                                 keyword_args[key.replace('-', '_')] = value
                             else:
                                 positional_args.append(param)
-
-                        # Generate the data to send
-                        data = COMMANDS[command_name](*positional_args, **keyword_args)
-
-                        # Send the data to the device
-                        await client.write_gatt_char(
-                            "0000fa02-0000-1000-8000-00805f9b34fb", data
-                        )
-
-                        # Prepare the response
-                        response = {"status": "success", "command": command_name}
+                        logger.info(f"[DRY-RUN] Would send command '{command_name}' with args {positional_args} and kwargs {keyword_args}")
+                        response = {"status": "success", "command": command_name, "dry_run": True}
                     else:
                         response = {"status": "error", "message": "Commande inconnue"}
                 except Exception as e:
                     response = {"status": "error", "message": str(e)}
-
-                # Send the response to the client
                 await websocket.send(json.dumps(response))
         except websockets.ConnectionClosed:
             logger.info("Websocket connection has been closed")
+    else:
+        async with BleakClient(address) as client:
+            logger.info("Connected to the device")
+            try:
+                while True:
+                    # Wait for a message from the client
+                    message = await websocket.recv()
 
-async def start_server(ip, port, address):
-    server = await websockets.serve(lambda ws: handle_websocket(ws, address), ip, port)
+                    # Parse JSON
+                    try:
+                        command_data = json.loads(message)
+                        command_name = command_data.get("command")
+                        params = command_data.get("params", [])
+
+                        if command_name in COMMANDS:
+                            # Separate positional and keyword arguments
+                            positional_args = []
+                            keyword_args = {}
+                            for param in params:
+                                if "=" in param:
+                                    key, value = param.split("=", 1)
+                                    keyword_args[key.replace('-', '_')] = value
+                                else:
+                                    positional_args.append(param)
+
+                            # Generate the data to send
+                            data = COMMANDS[command_name](*positional_args, **keyword_args)
+
+                            # Send the data to the device
+                            await client.write_gatt_char(
+                                "0000fa02-0000-1000-8000-00805f9b34fb", data
+                            )
+
+                            # Prepare the response
+                            response = {"status": "success", "command": command_name}
+                        else:
+                            response = {"status": "error", "message": "Commande inconnue"}
+                    except Exception as e:
+                        response = {"status": "error", "message": str(e)}
+
+                    # Send the response to the client
+                    await websocket.send(json.dumps(response))
+            except websockets.ConnectionClosed:
+                logger.info("Websocket connection has been closed")
+
+async def start_server(ip, port, address, dry_run=False):
+    server = await websockets.serve(lambda ws: handle_websocket(ws, address, dry_run), ip, port)
     logger.info(f"WebSocket server started on ws://{ip}:{port}")
     await server.wait_closed()
 
@@ -117,19 +146,30 @@ def build_command_args(params):
             positional_args.append(param)
     return positional_args, keyword_args
 
-async def run_multiple_commands(commands, address):
-    async with BleakClient(address) as client:
-        logger.info("Connected to the device")
+async def run_multiple_commands(commands, address, dry_run=False):
+    if dry_run:
+        logger.info("[DRY-RUN] Simulation, no BLE connection.")
         for cmd in commands:
             command_name = cmd[0]
             params = cmd[1:]
             if command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
-                data = COMMANDS[command_name](*positional_args, **keyword_args)
-                await client.write_gatt_char("0000fa02-0000-1000-8000-00805f9b34fb", data)
-                logger.info(f"Command '{command_name}' executed successfully.")
+                logger.info(f"[DRY-RUN] Would send command '{command_name}' with args {positional_args} and kwargs {keyword_args}")
             else:
                 logger.error(f"Unknown command: {command_name}")
+    else:
+        async with BleakClient(address) as client:
+            logger.info("Connected to the device")
+            for cmd in commands:
+                command_name = cmd[0]
+                params = cmd[1:]
+                if command_name in COMMANDS:
+                    positional_args, keyword_args = build_command_args(params)
+                    data = COMMANDS[command_name](*positional_args, **keyword_args)
+                    await client.write_gatt_char("0000fa02-0000-1000-8000-00805f9b34fb", data)
+                    logger.info(f"Command '{command_name}' executed successfully.")
+                else:
+                    logger.error(f"Unknown command: {command_name}")
 
 async def execute_command(command_name, params, address):
     async with BleakClient(address) as client:
@@ -164,10 +204,12 @@ if __name__ == "__main__":
     )
     parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
     parser.add_argument("--noemojis", action="store_true", help="Disable emojis in log output")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate commands without BLE connection")
+    parser.add_argument("--verbose", action="store_true", help="Enable debug log output")
 
     args = parser.parse_args()
     
-    setup_logging(use_emojis=not args.noemojis)
+    setup_logging(use_emojis=not args.noemojis, verbose=args.verbose)
 
     if args.scan:
         asyncio.run(scan_devices())
@@ -175,11 +217,11 @@ if __name__ == "__main__":
         if not args.address:
             logger.error("--address is required when using --server")
             exit(1)
-        asyncio.run(start_server("localhost", args.port, args.address))
+        asyncio.run(start_server("localhost", args.port, args.address, dry_run=args.dry_run))
     elif args.command:
         if not args.address:
             logger.error("--address is required when using --command")
             exit(1)
-        asyncio.run(run_multiple_commands(args.command, args.address))
+        asyncio.run(run_multiple_commands(args.command, args.address, dry_run=args.dry_run))
     else:
         logger.error("No mode specified. Use --scan, --server or -c with -a to specify an address.")
