@@ -193,6 +193,10 @@ None
 - `font_offset_x` (int): Horizontal offset for the font (`.ttf` only). Default: 0
 - `font_offset_y` (int): Vertical offset for the font (`.ttf` only). Default: 0
 
+> ⚠️ The `matrix_height` parameter might be required for proper text rendering. If not specified, it defaults to 16. Please set it according to your LED matrix height (16, 20, 24, 32). Default font only provides proper rendering for 16 height matrices, use `font=VCR_OSD_MONO` for 24 height matrices.
+
+> ⚠️ There is a known issue for matrix with 20px or 32px height, please try to change the value `HEADER_GAP` (line 245) in `commands.py` and report if it works.
+
 ---
 
 ### `send_png`
