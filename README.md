@@ -293,3 +293,5 @@ For best results, it is recommended to use a monospace font.
 
 Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a pull request.
 To get started on how to dump BLE logs from an Android device, refer to the [How to get BLE logs](docs/How_to_get_BLE_logs.md) guide.
+
+Check also the [new repository iPixel-CFW](https://github.com/lucagoc/iPixel-CFW) to help us build a custom firmware for the iPixel device with more features !
