@@ -3,7 +3,7 @@ import asyncio
 import argparse
 import websockets
 import logging
-from bleak import BleakClient, BleakScanner
+from bleak import BleakClient, BleakScanner, BleakError
 from commands import *
 
 class EmojiFormatter(logging.Formatter):
@@ -36,6 +36,8 @@ def setup_logging(use_emojis=True):
 
 logger = logging.getLogger(__name__)
 
+CHAR_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
+
 COMMANDS = {
     "clear": clear,
     "set_brightness": set_brightness,
@@ -55,12 +57,19 @@ COMMANDS = {
     "led_off": led_off
 }
 
+async def ble_write_with_reconnect(client: BleakClient, data: bytes, *, response: bool = False):
+    try:
+        await client.write_gatt_char(CHAR_UUID, data, response=response)
+    except (BleakError, TimeoutError, OSError):
+        logger.warning("BLE write failed, reconnecting…")
+        await client.connect(timeout=30)
+        await client.write_gatt_char(CHAR_UUID, data, response=response)
+
 async def handle_websocket(websocket, client):
     logger.info("Connected to the device")
     try:
         while True:
             message = await websocket.recv()
-
             try:
                 command_data = json.loads(message)
                 command_name = command_data.get("command")
@@ -77,11 +86,7 @@ async def handle_websocket(websocket, client):
                             positional_args.append(param)
 
                     data = COMMANDS[command_name](*positional_args, **keyword_args)
-
-                    await client.write_gatt_char(
-                        "0000fa02-0000-1000-8000-00805f9b34fb", data
-                    )
-
+                    await ble_write_with_reconnect(client, data, response=False)
                     response = {"status": "success", "command": command_name}
                 else:
                     response = {"status": "error", "message": "Commande inconnue"}
