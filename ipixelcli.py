@@ -162,6 +162,7 @@ if __name__ == "__main__":
         "-c", "--command", action="append", nargs="+", metavar="COMMAND PARAMS",
         help="Execute a specific command with parameters. Can be used multiple times."
     )
+    parser.add_argument("--host", default="localhost", help="Bind address (e.g., 0.0.0.0, ::, or localhost)")
     parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
     parser.add_argument("--noemojis", action="store_true", help="Disable emojis in log output")
 
@@ -175,7 +176,7 @@ if __name__ == "__main__":
         if not args.address:
             logger.error("--address is required when using --server")
             exit(1)
-        asyncio.run(start_server("localhost", args.port, args.address))
+        asyncio.run(start_server(args.host, args.port, args.address))
     elif args.command:
         if not args.address:
             logger.error("--address is required when using --command")
