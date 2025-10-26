@@ -42,41 +42,38 @@ def image_to_rgb_string(image_path: str) -> str:
         logger.error(f"Error occurred while converting image to RGB string: {e}")
         return None
 
-def charimg_to_hex_string(img: Image) -> str:
+def charimg_to_hex_string(img: Image) -> tuple[str, int]:
     """
     Convert a character image to a hexadecimal string.
+    The width of each line is padded to the nearest multiple of `multiple` bits.
+    :param img: The character image (PIL Image).
+    Returns: (hex_string, width)
     """
-
-    # Load the image
+    
+    BYTE_SIZE = 8
+    
     img = img.convert("L")
     char_width, char_height = img.size
 
-    # Check if the image is char_width x char_height pixels
-    if img.size != (char_width, char_height):
-        raise ValueError("The image must be " + str(char_width) + "x" + str(char_height) + " pixels")
+    # Calculate padded width
+    padded_width = ((char_width + BYTE_SIZE - 1) // BYTE_SIZE) * BYTE_SIZE
 
     hex_string = ""
 
     for y in range(char_height):
         line_value = 0
-        line_value_2 = 0
 
         for x in range(char_width):
             pixel = img.getpixel((x, y))
             if pixel > 0:
-                if x < 16:
-                    line_value |= (1 << (15 - x))
-                else:
-                    line_value_2 |= (1 << (31 - x))
+                line_value |= (1 << (padded_width - 1 - x))
 
-        # Merge line_value_2 into line_value for 32-bit value
-        line_value = (line_value_2 << 16) | line_value
+        # Convert to hex, padding to nearest multiple of 4 digits
+        hex_digits = ((padded_width + 3) // 4)
+        hex_string += f"{line_value:0{hex_digits}X}"
 
-        # Convert the value to a 4 bytes hex string
-        hex_string += f"{line_value:04X}"
-        
-        # Print the line value for debugging
-        binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
+        # Debug print
+        binary_str = f"{line_value:0{padded_width}b}".replace('0', '.').replace('1', '#')
         logger.debug(binary_str)
 
     return hex_string, char_width
@@ -136,8 +133,8 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
             # Clamp text_width between min and max values to prevent crash
             # Values tested on 16px height device
             # Might be different for 20px or 24px devices
-            min_width = 9
-            max_width = 16
+            min_width = 9           # This is clearly due to byte alignment
+            max_width = 16          # Probably same here
             text_width = max(min_width, min(text_width, max_width))
             # print(f"[INFO] Character '{character}' width: {text_width}px")
             

@@ -244,6 +244,8 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     HEADER_3_MG = 0xE
     # Dynamically calculate HEADER_GAP based on matrix_height (EXP)
     header_gap = 0x06 + matrix_height * 0x2
+    header_gap_hex = hex(header_gap)[2:].zfill(4)
+    logger.debug(f"Calculated header gap: {header_gap} (0x{header_gap_hex})")
 
     header_1 = switch_endian(hex(HEADER_1_MG + len(text) * header_gap)[2:].zfill(4))
     header_2 = "000100"
