@@ -170,7 +170,7 @@ def set_fun_mode(value=False):
 def set_orientation(orientation=0):
     """Set the orientation of the device."""
     orientation = to_int(orientation, "orientation")
-    validate_range(orientation, 0, 2, "Orientation")
+    validate_range(orientation, 0, 3, "Orientation")
     return bytes.fromhex("05000680") + bytes.fromhex(int_to_hex(orientation))
 
 
