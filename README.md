@@ -140,7 +140,7 @@ If one or more parameter is missing, the current time will be used.
 
 **Parameters:**
 
-- `orientation` (int): Orientation value (0-2). Default: 0
+- `orientation` (int): Orientation value (0-3). Default: 0
 
 ---
 
