@@ -285,6 +285,17 @@ For best results, it is recommended to use a monospace font.
 ---
 > 💡 You can use the generated `fonts/cache` folder as a starting point for creating your own custom fonts from an existing font.
 
+## Related projects
+
+- [iPixel-CFW](https://github.com/lucagoc/iPixel-CFW): CFW experimentation
+- [iPixel-ESPHome](https://github.com/lucagoc/iPixel-ESPHome): ESPHome integration
+
+Check also these cool projects made by other developers:
+
+- [iPixel-ESP32 (ToBiDi0410)](https://github.com/ToBiDi0410/iPixel-ESP32): ESP32 port of this project
+- [iPixel-CLI-ESP32 (Cino2424)](https://github.com/Cino2424/iPixel-CLI-ESP32/tree/port-esp32): Another ESP32 port of this project
+- [go-ipxl (yyewolf)](https://github.com/yyewolf/go-ipxl): Go library implementation
+
 ## Other
 
 > 💡 If your terminal doesn't support emojis, you can disable them with the `--noemojis` flag.
