@@ -3,7 +3,7 @@ import asyncio
 import argparse
 import websockets
 import logging
-from bleak import BleakClient, BleakScanner
+from bleak import BleakClient, BleakScanner, BleakError
 from commands import *
 
 class EmojiFormatter(logging.Formatter):
@@ -14,7 +14,7 @@ class EmojiFormatter(logging.Formatter):
         'ERROR': '❌',
         'CRITICAL': '🔥'
     }
-    
+
     def format(self, record):
         emoji = self.EMOJI_MAP.get(record.levelname, '📝')
         record.levelname = f"{emoji}"
@@ -23,18 +23,20 @@ class EmojiFormatter(logging.Formatter):
 def setup_logging(use_emojis=True):
     log_format = '%(levelname)s [%(asctime)s] [%(name)s] %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
-    
+
     if use_emojis:
         formatter = EmojiFormatter(log_format, datefmt=date_format)
     else:
         formatter = logging.Formatter(log_format, datefmt=date_format)
-    
+
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    
+
     logging.basicConfig(level=logging.INFO, handlers=[handler])
 
 logger = logging.getLogger(__name__)
+
+CHAR_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
 
 COMMANDS = {
     "clear": clear,
@@ -55,56 +57,55 @@ COMMANDS = {
     "led_off": led_off
 }
 
-# Socket server
-async def handle_websocket(websocket, address):
-    async with BleakClient(address) as client:
-        logger.info("Connected to the device")
-        try:
-            while True:
-                # Wait for a message from the client
-                message = await websocket.recv()
+async def ble_write_with_reconnect(client: BleakClient, data: bytes, *, response: bool = False):
+    try:
+        await client.write_gatt_char(CHAR_UUID, data, response=response)
+    except (BleakError, TimeoutError, OSError):
+        logger.warning("BLE write failed, reconnecting…")
+        await client.connect(timeout=30)
+        await client.write_gatt_char(CHAR_UUID, data, response=response)
 
-                # Parse JSON
-                try:
-                    command_data = json.loads(message)
-                    command_name = command_data.get("command")
-                    params = command_data.get("params", [])
+async def handle_websocket(websocket, client):
+    logger.info("Connected to the device")
+    try:
+        while True:
+            message = await websocket.recv()
+            try:
+                command_data = json.loads(message)
+                command_name = command_data.get("command")
+                params = command_data.get("params", [])
 
-                    if command_name in COMMANDS:
-                        # Separate positional and keyword arguments
-                        positional_args = []
-                        keyword_args = {}
-                        for param in params:
-                            if "=" in param:
-                                key, value = param.split("=", 1)
-                                keyword_args[key.replace('-', '_')] = value
-                            else:
-                                positional_args.append(param)
+                if command_name in COMMANDS:
+                    positional_args = []
+                    keyword_args = {}
+                    for param in params:
+                        if "=" in param:
+                            key, value = param.split("=", 1)
+                            keyword_args[key.replace('-', '_')] = value
+                        else:
+                            positional_args.append(param)
 
-                        # Generate the data to send
-                        data = COMMANDS[command_name](*positional_args, **keyword_args)
+                    data = COMMANDS[command_name](*positional_args, **keyword_args)
+                    await ble_write_with_reconnect(client, data, response=False)
+                    response = {"status": "success", "command": command_name}
+                else:
+                    response = {"status": "error", "message": "Commande inconnue"}
+            except Exception as e:
+                response = {"status": "error", "message": str(e)}
 
-                        # Send the data to the device
-                        await client.write_gatt_char(
-                            "0000fa02-0000-1000-8000-00805f9b34fb", data
-                        )
-
-                        # Prepare the response
-                        response = {"status": "success", "command": command_name}
-                    else:
-                        response = {"status": "error", "message": "Commande inconnue"}
-                except Exception as e:
-                    response = {"status": "error", "message": str(e)}
-
-                # Send the response to the client
-                await websocket.send(json.dumps(response))
-        except websockets.ConnectionClosed:
-            logger.info("Websocket connection has been closed")
+            await websocket.send(json.dumps(response))
+    except websockets.ConnectionClosed:
+        logger.info("Websocket connection has been closed")
 
 async def start_server(ip, port, address):
-    server = await websockets.serve(lambda ws: handle_websocket(ws, address), ip, port)
+    client = BleakClient(address)
+    await client.connect(timeout=30)
+    server = await websockets.serve(lambda ws: handle_websocket(ws, client), ip, port)
     logger.info(f"WebSocket server started on ws://{ip}:{port}")
-    await server.wait_closed()
+    try:
+        await server.wait_closed()
+    finally:
+        await client.disconnect()
 
 def build_command_args(params):
     positional_args = []
@@ -167,7 +168,7 @@ if __name__ == "__main__":
     parser.add_argument("--noemojis", action="store_true", help="Disable emojis in log output")
 
     args = parser.parse_args()
-    
+
     setup_logging(use_emojis=not args.noemojis)
 
     if args.scan:
