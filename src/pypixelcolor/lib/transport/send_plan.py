@@ -8,6 +8,9 @@ from .window import Window
 
 logger = getLogger(__name__)
 
+WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
+NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
+
 @dataclass
 class SendPlan:
     id: str
@@ -40,7 +43,7 @@ def _chunk_bytes(buf: bytes, size: int):
         yield buf[pos:end]
         pos = end
 
-async def send_plan(client, plan: SendPlan, ack_mgr: AckManager, *, write_uuid: str = "0000fa02-0000-1000-8000-00805f9b34fb", ack_timeout: float = 8.0):
+async def send_plan(client, plan: SendPlan, ack_mgr: AckManager, *, write_uuid: str = WRITE_UUID, ack_timeout: float = 8.0):
     """
     Send a SendPlan generically.
 

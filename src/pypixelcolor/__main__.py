@@ -4,136 +4,22 @@ Aka ipixel-cli
 """
 
 # Imports
-import json
 import asyncio
 import argparse
-import websockets
 import logging
 from bleak import BleakClient, BleakScanner
 
 # Locals
+from .lib.logging import setup_logging
 from .lib.transport.send_plan import send_plan
 from .lib.transport.ack_manager import AckManager
 from .lib.emoji_formatter import EmojiFormatter
-from .commands import (
-    clear,
-    delete,
-    set_brightness,
-    set_clock_mode,
-    set_rhythm_mode,
-    set_fun_mode,
-    set_time,
-    set_fun_mode,
-    set_orientation,
-    set_power,
-    send_text,
-    send_image
-)
+from .websocket import build_command_args
+from .commands import COMMANDS
 
-WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
 NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
-def setup_logging(use_emojis=True):
-    log_format = '%(levelname)s [%(asctime)s] [%(name)s] %(message)s'
-    date_format = '%Y-%m-%d %H:%M:%S'
-    
-    if use_emojis:
-        formatter = EmojiFormatter(log_format, datefmt=date_format)
-    else:
-        formatter = logging.Formatter(log_format, datefmt=date_format)
-    
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    
-    logging.basicConfig(level=logging.INFO, handlers=[handler])
-
 logger = logging.getLogger(__name__)
-
-COMMANDS = {
-    "clear": clear.clear,
-    "set_brightness": set_brightness.set_brightness,
-    "set_clock_mode": set_clock_mode.set_clock_mode,
-    "set_rhythm_mode": set_rhythm_mode.set_rhythm_mode,
-    "set_rhythm_mode_2": set_rhythm_mode.set_rhythm_mode_2,
-    "set_time": set_time.set_time,
-    "set_fun_mode": set_fun_mode.set_fun_mode,
-    "set_pixel": set_fun_mode.set_pixel,
-    "delete_screen": delete.delete_screen,
-    "send_text": send_text.send_text,
-    "set_orientation": set_orientation.set_orientation,
-    "send_image": send_image.send_image,
-    "led_on": set_power.led_on,
-    "led_off": set_power.led_off
-}
-
-# Socket server
-async def handle_websocket(websocket, address):
-    async with BleakClient(address) as client:
-        logger.info("Connected to the device")
-        try:
-            # Enable notify-based ACKs for flow control
-            ack_mgr = AckManager()
-            try:
-                await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
-            except Exception as e:
-                logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
-            while True:
-                # Wait for a message from the client
-                message = await websocket.recv()
-
-                # Parse JSON
-                try:
-                    command_data = json.loads(message)
-                    command_name = command_data.get("command")
-                    params = command_data.get("params", [])
-
-                    if command_name in COMMANDS:
-                        # Separate positional and keyword arguments
-                        positional_args = []
-                        keyword_args = {}
-                        for param in params:
-                            if "=" in param:
-                                key, value = param.split("=", 1)
-                                keyword_args[key.replace('-', '_')] = value
-                            else:
-                                positional_args.append(param)
-
-                        # Build the SendPlan (or wrap legacy bytes to plan)
-                        plan = COMMANDS[command_name](*positional_args, **keyword_args)
-                        await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
-
-                        # Prepare the response
-                        response = {"status": "success", "command": command_name}
-                    else:
-                        response = {"status": "error", "message": "Commande inconnue"}
-                except Exception as e:
-                    response = {"status": "error", "message": str(e)}
-
-                # Send the response to the client
-                await websocket.send(json.dumps(response))
-        except websockets.ConnectionClosed:
-            logger.info("Websocket connection has been closed")
-        finally:
-            try:
-                await client.stop_notify(NOTIFY_UUID)
-            except Exception:
-                pass
-
-async def start_server(ip, port, address):
-    server = await websockets.serve(lambda ws: handle_websocket(ws, address), ip, port)
-    logger.info(f"WebSocket server started on ws://{ip}:{port}")
-    await server.wait_closed()
-
-def build_command_args(params):
-    positional_args = []
-    keyword_args = {}
-    for param in params:
-        if "=" in param:
-            key, value = param.split("=", 1)
-            keyword_args[key.replace('-', '_')] = value
-        else:
-            positional_args.append(param)
-    return positional_args, keyword_args
 
 async def run_multiple_commands(commands, address):
     async with BleakClient(address) as client:
@@ -150,7 +36,7 @@ async def run_multiple_commands(commands, address):
             if command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
                 plan = COMMANDS[command_name](*positional_args, **keyword_args)
-                await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
+                await send_plan(client, plan, ack_mgr)
                 logger.info(f"Command '{command_name}' executed successfully.")
             else:
                 logger.error(f"Unknown command: {command_name}")
@@ -171,7 +57,7 @@ async def execute_command(command_name, params, address):
         if command_name in COMMANDS:
             positional_args, keyword_args = build_command_args(params)
             plan = COMMANDS[command_name](*positional_args, **keyword_args)
-            await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
+            await send_plan(client, plan, ack_mgr)
             logger.info(f"Command '{command_name}' executed successfully.")
         else:
             logger.error(f"Unknown command: {command_name}")
@@ -191,18 +77,13 @@ async def scan_devices():
     else:
         logger.info("No Bluetooth devices found.")
 
-"""__main__ now only orchestrates CLI and delegates framing/segmentation to commands/transport."""
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="WebSocket BLE Server")
-    parser.add_argument("-s", "--server", action="store_true", help="Run as WebSocket server")
+    parser = argparse.ArgumentParser(description="iPixel CLI - BLE Command Tool")
     parser.add_argument("--scan", action="store_true", help="Scan for Bluetooth devices")
-    parser.add_argument("-p", "--port", type=int, default=4444, help="Specify the port for the server")
     parser.add_argument(
         "-c", "--command", action="append", nargs="+", metavar="COMMAND PARAMS",
         help="Execute a specific command with parameters. Can be used multiple times."
     )
-    parser.add_argument("--host", default="localhost", help="Bind address (e.g., 0.0.0.0, ::, or localhost)")
     parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
     parser.add_argument("--noemojis", action="store_true", help="Disable emojis in log output")
 
@@ -212,15 +93,11 @@ if __name__ == "__main__":
 
     if args.scan:
         asyncio.run(scan_devices())
-    elif args.server:
-        if not args.address:
-            logger.error("--address is required when using --server")
-            exit(1)
-        asyncio.run(start_server(args.host, args.port, args.address))
     elif args.command:
         if not args.address:
             logger.error("--address is required when using --command")
             exit(1)
         asyncio.run(run_multiple_commands(args.command, args.address))
     else:
-        logger.error("No mode specified. Use --scan, --server or -c with -a to specify an address.")
+        logger.error("No mode specified. Use --scan or -c with -a to specify an address.")
+        logger.info("For WebSocket server mode, use: python -m pypixelcolor.websocket -a <address>")
