@@ -16,7 +16,8 @@ from ..lib.transport.send_plan import single_window_plan
 logger = getLogger("ipixel-cli.commands.send_text")
 
 def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=0, matrix_height=16):
-    """Send a text to the device with configurable parameters.
+    """
+    Send a text to the device with configurable parameters.
 
     Args:
         text (str): The text to send.

@@ -5,6 +5,8 @@ The command encapsulates all protocol-specific framing (headers/tails/length pre
 so the transport stays generic.
 """
 
+from pathlib import Path
+from typing import Union
 from ..lib.bit_tools import CRC32_checksum, get_frame_size
 from ..lib.transport.send_plan import (
     SendPlan, Window, AckPolicy, single_window_plan
@@ -16,19 +18,55 @@ def _hex_len_prefix_for(inner_hex: str) -> bytes:
     return bytes.fromhex(get_frame_size("FFFF" + inner_hex, 4))
 
 
-def send_image(path_or_hex):
-    """Return a SendPlan for an image (PNG) or animation (GIF)."""
-    # Determine source format
-    is_gif = False
-    if isinstance(path_or_hex, str) and (path_or_hex.endswith(".png") or path_or_hex.endswith(".gif")):
-        with open(path_or_hex, "rb") as f:
-            file_bytes = f.read()
-        is_gif = path_or_hex.endswith(".gif")
-    else:
-        # Assume hex string provided
-        image_hex = path_or_hex
-        file_bytes = bytes.fromhex(image_hex)
-        is_gif = image_hex.startswith("474946")  # 'GIF'
+def _load_from_file(path: Path) -> tuple[bytes, bool]:
+    """Load image data from file path.
+    
+    Args:
+        path: Path to image file (PNG or GIF).
+        
+    Returns:
+        Tuple of (file_bytes, is_gif).
+    """
+    with open(path, "rb") as f:
+        file_bytes = f.read()
+    is_gif = path.suffix.lower() == ".gif"
+    return file_bytes, is_gif
+
+
+def _load_from_hex(hex_string: str) -> tuple[bytes, bool]:
+    """Load image data from hex string.
+    
+    Args:
+        hex_string: Hexadecimal representation of image data.
+        
+    Returns:
+        Tuple of (file_bytes, is_gif).
+    """
+    file_bytes = bytes.fromhex(hex_string)
+    is_gif = hex_string.upper().startswith("474946")  # 'GIF' magic number
+    return file_bytes, is_gif
+
+
+def send_image(path_or_hex: Union[str, Path]):
+    """Return a SendPlan for an image (PNG) or animation (GIF).
+    
+    Args:
+        path_or_hex: Either a file path (str/Path) or hexadecimal string.
+        
+    Returns:
+        A SendPlan for sending the image/animation.
+    """
+    # Robuste detection: try as Path first, fallback to hex
+    try:
+        path = Path(path_or_hex)
+        if path.exists() and path.is_file():
+            file_bytes, is_gif = _load_from_file(path)
+        else:
+            # Not a valid file path, treat as hex
+            file_bytes, is_gif = _load_from_hex(str(path_or_hex))
+    except (ValueError, OSError):
+        # Path construction or file reading failed, treat as hex
+        file_bytes, is_gif = _load_from_hex(str(path_or_hex))
 
     image_hex = file_bytes.hex()
     checksum = CRC32_checksum(image_hex)  # endian-switched hex

@@ -1,7 +1,3 @@
-"""
-
-"""
-
 # Imports
 from datetime import datetime
 
@@ -11,7 +7,18 @@ from ..lib.convert import to_int, to_bool, validate_range, int_to_hex
 
 # Commands
 def set_clock_mode(style=1, date="", show_date=True, format_24=True):
-    """Set the clock mode of the device."""
+    """
+    Set the clock mode of the device.
+
+    Args:
+        style (int, optional): The clock style (0-8). Defaults to 1.
+        date (str, optional): The date to display (DD/MM/YYYY). Defaults to today.
+        show_date (bool, optional): Whether to show the date. Defaults to True.
+        format_24 (bool, optional): Whether to use 24-hour format. Defaults to True.
+
+    Returns:
+        bytes: Encoded command to send to the device.
+    """
     style = to_int(style, "style")
     show_date = to_bool(show_date)
     format_24 = to_bool(format_24)
