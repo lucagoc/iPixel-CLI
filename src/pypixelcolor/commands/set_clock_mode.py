@@ -2,8 +2,11 @@
 
 """
 
+# Imports
 from datetime import datetime
-from lib.convert import to_int, to_bool, validate_range, int_to_hex
+
+# Locals
+from ..lib.convert import to_int, to_bool, validate_range, int_to_hex
 
 # Commands
 def set_clock_mode(style=1, date="", show_date=True, format_24=True):

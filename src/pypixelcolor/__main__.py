@@ -1,11 +1,19 @@
+"""
+# pypixelcolor __main__.py
+Aka ipixel-cli
+"""
+
+# Imports
 import json
 import asyncio
 import argparse
 import websockets
 import logging
 from bleak import BleakClient, BleakScanner
-from lib.bit_tools import get_frame_size
-from commands import (
+
+# Locals
+from .lib.bit_tools import get_frame_size
+from .commands import (
     clear,
     delete,
     set_brightness,

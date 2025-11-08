@@ -1,4 +1,4 @@
-from lib.convert import to_bool, to_int, int_to_hex
+from ..lib.convert import to_bool, to_int, int_to_hex
 
 def set_fun_mode(value=False):
     """Set the DIY Fun Mode (Drawing Mode)."""

@@ -4,10 +4,13 @@
 
 """
 
+# Imports
 from logging import getLogger
-from lib.bit_tools import switch_endian, invert_frames, logic_reverse_bits_order, CRC32_checksum
-from lib.img_2_pix import char_to_hex
-from lib.convert import to_int, int_to_hex, validate_range
+
+# Locals
+from ..lib.bit_tools import switch_endian, invert_frames, logic_reverse_bits_order, CRC32_checksum
+from ..lib.img_2_pix import char_to_hex
+from ..lib.convert import to_int, int_to_hex, validate_range
 
 logger = getLogger("ipixel-cli.commands.send_text")
 

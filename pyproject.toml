@@ -3,7 +3,7 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pypixel_color_lucagoc"
+name = "pypixelcolor"
 version = "1.0.0"
 authors = [
   { name="Lucas Balmès", email="lucagoc@pm.me" },
@@ -19,5 +19,5 @@ license = "MIT"
 license-files = ["LICEN[CS]E*"]
 
 [project.urls]
-Homepage = "https://github.com/lucagoc/pypixel-color"
-Issues = "https://github.com/lucagoc/pypixel-color/issues"
+Homepage = "https://github.com/lucagoc/pypixelcolor"
+Issues = "https://github.com/lucagoc/pypixelcolor/issues"

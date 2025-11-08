@@ -1,3 +1,0 @@
-"""
-File for pypixel package.
-"""

@@ -2,12 +2,16 @@
 
 """
 
+# Imports
 from datetime import datetime
-from lib.convert import to_int, validate_range
 
+# Locals
+from ..lib.convert import to_int, validate_range
 
 def set_time(hour=None, minute=None, second=None):
-    """Set the time of the device. If no time is provided, it uses the current system time."""
+    """
+    Set the time of the device. If no time is provided, it uses the current system time.
+    """
     if hour is None or minute is None or second is None:
         now = datetime.now()
         hour = now.hour

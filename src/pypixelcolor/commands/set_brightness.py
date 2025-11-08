@@ -2,7 +2,7 @@
 Set brightness command.
 """
 
-from lib.convert import to_int, validate_range, int_to_hex
+from ..lib.convert import to_int, validate_range, int_to_hex
 
 def set_brightness(value):
     """Set the brightness of the device."""

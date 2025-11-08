@@ -2,7 +2,7 @@
 
 """
 
-from lib.convert import to_int, validate_range, int_to_hex
+from ..lib.convert import to_int, validate_range, int_to_hex
 
 def set_rhythm_mode(style=0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0"):
     """

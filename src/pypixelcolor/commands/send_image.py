@@ -2,7 +2,7 @@
 Send image/animation commands to the device.
 """
 
-from lib.bit_tools import CRC32_checksum, get_frame_size
+from ..lib.bit_tools import CRC32_checksum, get_frame_size
 
 def send_png(path_or_hex):
     """Send a PNG image to the device."""
