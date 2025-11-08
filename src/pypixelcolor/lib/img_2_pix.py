@@ -8,18 +8,26 @@ logger = getLogger(__name__)
 
 def get_font_path(font_name: str) -> str:
     """Get the path to the font directory or file."""
-    # if file ttf exists
-    if os.path.isfile("font/" + font_name + ".ttf"):
-        return "font/" + font_name + ".ttf"
-    # if folder exists
-    elif os.path.isdir("font/" + font_name):
-        return "font/" + font_name
-    # else return default font
-    else:
-        logger.warning(f"Font '{font_name}' not found. Using default font.")
-        return "font/default"
+    # Get the base directory where fonts are stored (pypixelcolor/fonts)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    fonts_dir = os.path.join(base_dir, "fonts")
+    
+    # Check if ttf file exists
+    font_file = os.path.join(fonts_dir, f"{font_name}.ttf")
+    if os.path.isfile(font_file):
+        return font_file
+    
+    # Check if folder exists
+    font_folder = os.path.join(fonts_dir, font_name)
+    if os.path.isdir(font_folder):
+        return font_folder
+    
+    # Return default font path
+    default_font = os.path.join(fonts_dir, "0_VCR_OSD_MONO")
+    logger.warning(f"Font '{font_name}' not found. Using default font at {default_font}.")
+    return default_font
 
-def image_to_rgb_string(image_path: str) -> str:
+def image_to_rgb_string(image_path: str) -> str | None:
     """
     Convert an image to a hexadecimal RGB string.
     :param image_path: The path to the image file.
@@ -42,7 +50,7 @@ def image_to_rgb_string(image_path: str) -> str:
         logger.error(f"Error occurred while converting image to RGB string: {e}")
         return None
 
-def charimg_to_hex_string(img: Image) -> str:
+def charimg_to_hex_string(img):
     """
     Convert a character image to a hexadecimal string.
     """
@@ -81,7 +89,7 @@ def charimg_to_hex_string(img: Image) -> str:
 
     return hex_string, char_width
 
-def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size=16, font="default") -> tuple[str, int]:
+def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size=16, font="default"):
     """
     Convert a character to its hexadecimal representation with an optional offset.
     Returns: (hex_string, width)
@@ -108,48 +116,32 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
                 img_rgb = Image.new('RGB', (9, matrix_height), (255, 255, 255))
                 return charimg_to_hex_string(img_rgb)
         
-        # Else, check the font cache system
-        font_name = os.path.splitext(os.path.basename(font_path))[0]
+        # Generate image with dynamic width
+        # First, create a temporary large image to measure text
+        temp_img = Image.new('1', (100, matrix_height), 0)
+        temp_draw = ImageDraw.Draw(temp_img)
+        font_obj = ImageFont.truetype(font_path, font_size)
         
-        # Create cache directory
-        cache_dir = f"font/cache/{font_name}/{matrix_height}p{font_size}"
-        os.makedirs(cache_dir, exist_ok=True)
+        # Get text bounding box
+        bbox = temp_draw.textbbox((0, 0), character, font=font_obj)
+        text_width = bbox[2] - bbox[0]
         
-        # Cache file path
-        cache_file = os.path.join(cache_dir, f"{ord(character):04X}.png")
+        # Clamp text_width between min and max values to prevent crash
+        # Values tested on 16px height device
+        # Might be different for 20px or 24px devices
+        min_width = 9
+        max_width = 16
+        text_width = max(min_width, min(text_width, max_width))
+        # print(f"[INFO] Character '{character}' width: {text_width}px")
         
-        if os.path.exists(cache_file):
-            # Use cached image
-            img_rgb = Image.open(cache_file)
-            return charimg_to_hex_string(img_rgb)
-        else:
-            # Generate image with dynamic width
-            # First, create a temporary large image to measure text
-            temp_img = Image.new('1', (100, matrix_height), 0)
-            temp_draw = ImageDraw.Draw(temp_img)
-            font_obj = ImageFont.truetype(font_path, font_size)
-            
-            # Get text bounding box
-            bbox = temp_draw.textbbox((0, 0), character, font=font_obj)
-            text_width = bbox[2] - bbox[0]
-            
-            # Clamp text_width between min and max values to prevent crash
-            # Values tested on 16px height device
-            # Might be different for 20px or 24px devices
-            min_width = 9
-            max_width = 16
-            text_width = max(min_width, min(text_width, max_width))
-            # print(f"[INFO] Character '{character}' width: {text_width}px")
-            
-            # Create final image with calculated width
-            img = Image.new('1', (text_width, matrix_height), 0)
-            d = ImageDraw.Draw(img)
-            d.text(font_offset, character, fill=1, font=font_obj)
+        # Create final image with calculated width
+        img = Image.new('1', (text_width, matrix_height), 0)
+        d = ImageDraw.Draw(img)
+        d.text(font_offset, character, fill=1, font=font_obj)
 
-            img_rgb = img.convert('RGB')
-            img_rgb.save(cache_file)
-            
-            return charimg_to_hex_string(img_rgb)
+        img_rgb = img.convert('RGB')
+        
+        return charimg_to_hex_string(img_rgb)
     except Exception as e:
         logger.error(f"Error occurred while converting character to hex: {e}")
         return None, 0
