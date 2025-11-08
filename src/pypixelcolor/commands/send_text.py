@@ -11,7 +11,7 @@ from logging import getLogger
 from ..lib.encode_text import encode_text
 from ..lib.bit_tools import switch_endian, CRC32_checksum
 from ..lib.convert import to_int, int_to_hex, validate_range
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 
 logger = getLogger("ipixel-cli.commands.send_text")
 

@@ -12,8 +12,9 @@ import logging
 from bleak import BleakClient, BleakScanner
 
 # Locals
+from .lib.transport.send_plan import send_plan
+from .lib.transport.ack_manager import AckManager
 from .lib.emoji_formatter import EmojiFormatter
-from .commands.base import SendPlan, Window, AckPolicy, single_window_plan
 from .commands import (
     clear,
     delete,
@@ -28,9 +29,6 @@ from .commands import (
     send_text,
     send_image
 )
-
-# Transport generic sender
-from .transport.send import send_plan, AckManager
 
 WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
 NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
@@ -151,8 +149,7 @@ async def run_multiple_commands(commands, address):
             params = cmd[1:]
             if command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
-                result = COMMANDS[command_name](*positional_args, **keyword_args)
-                plan = result if isinstance(result, SendPlan) else single_window_plan(command_name, result)
+                plan = COMMANDS[command_name](*positional_args, **keyword_args)
                 await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
                 logger.info(f"Command '{command_name}' executed successfully.")
             else:
@@ -173,8 +170,7 @@ async def execute_command(command_name, params, address):
             logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
         if command_name in COMMANDS:
             positional_args, keyword_args = build_command_args(params)
-            result = COMMANDS[command_name](*positional_args, **keyword_args)
-            plan = result if isinstance(result, SendPlan) else single_window_plan(command_name, result)
+            plan = COMMANDS[command_name](*positional_args, **keyword_args)
             await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
             logger.info(f"Command '{command_name}' executed successfully.")
         else:

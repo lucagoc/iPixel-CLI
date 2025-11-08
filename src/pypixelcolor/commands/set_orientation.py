@@ -1,4 +1,4 @@
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 from ..lib.convert import to_int, validate_range, int_to_hex
 
 def set_orientation(orientation=0):

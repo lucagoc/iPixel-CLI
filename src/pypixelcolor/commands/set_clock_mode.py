@@ -6,7 +6,7 @@
 from datetime import datetime
 
 # Locals
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 from ..lib.convert import to_int, to_bool, validate_range, int_to_hex
 
 # Commands

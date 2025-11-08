@@ -2,7 +2,7 @@
 Delete screen command.
 """
 
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 from ..lib.convert import to_int, int_to_hex
 
 def delete_screen(n):

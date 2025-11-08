@@ -1,7 +1,7 @@
 """Set brightness command producing a SendPlan instead of raw bytes."""
 
 from ..lib.convert import to_int, validate_range, int_to_hex
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 
 def set_brightness(value):
     """Return a SendPlan to set the brightness."""

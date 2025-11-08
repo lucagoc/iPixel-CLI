@@ -1,7 +1,7 @@
 """
 Set power command.
 """
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 
 def led_off():
     """Turn the LED off."""

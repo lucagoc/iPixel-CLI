@@ -2,7 +2,7 @@
 Clear EEPROM command.
 """
 
-from .base import single_window_plan
+from ..lib.transport.send_plan import single_window_plan
 
 def clear():
     """Clear the EEPROM."""
