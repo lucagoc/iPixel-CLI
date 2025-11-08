@@ -12,8 +12,8 @@ import logging
 from bleak import BleakClient, BleakScanner
 
 # Locals
-from .lib.bit_tools import get_frame_size
 from .lib.emoji_formatter import EmojiFormatter
+from .commands.base import SendPlan, Window, AckPolicy, single_window_plan
 from .commands import (
     clear,
     delete,
@@ -28,6 +28,9 @@ from .commands import (
     send_text,
     send_image
 )
+
+# Transport generic sender
+from .transport.send import send_plan, AckManager
 
 WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
 NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
@@ -71,9 +74,9 @@ async def handle_websocket(websocket, address):
         logger.info("Connected to the device")
         try:
             # Enable notify-based ACKs for flow control
-            ack_mgr = BleAckManager()
+            ack_mgr = AckManager()
             try:
-                await client.start_notify(NOTIFY_UUID, _make_notify_handler(ack_mgr))
+                await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
             except Exception as e:
                 logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
             while True:
@@ -97,14 +100,9 @@ async def handle_websocket(websocket, address):
                             else:
                                 positional_args.append(param)
 
-                        # Generate the data to send
-                        data = COMMANDS[command_name](*positional_args, **keyword_args)
-
-                        # Send using windowed GIF sender for GIF commands, else chunked
-                        if command_name in ("send_image"):
-                            await send_gif_windowed(client, data, ack_mgr)
-                        else:
-                            await send_chunked(client, data, ack_mgr)
+                        # Build the SendPlan (or wrap legacy bytes to plan)
+                        plan = COMMANDS[command_name](*positional_args, **keyword_args)
+                        await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
 
                         # Prepare the response
                         response = {"status": "success", "command": command_name}
@@ -143,9 +141,9 @@ async def run_multiple_commands(commands, address):
     async with BleakClient(address) as client:
         logger.info("Connected to the device")
         # Enable notify-based ACKs
-        ack_mgr = BleAckManager()
+        ack_mgr = AckManager()
         try:
-            await client.start_notify(NOTIFY_UUID, _make_notify_handler(ack_mgr))
+            await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
         except Exception as e:
             logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
         for cmd in commands:
@@ -153,11 +151,9 @@ async def run_multiple_commands(commands, address):
             params = cmd[1:]
             if command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
-                data = COMMANDS[command_name](*positional_args, **keyword_args)
-                if command_name in ("send_image"):
-                    await send_gif_windowed(client, data, ack_mgr)
-                else:
-                    await send_chunked(client, data, ack_mgr)
+                result = COMMANDS[command_name](*positional_args, **keyword_args)
+                plan = result if isinstance(result, SendPlan) else single_window_plan(command_name, result)
+                await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
                 logger.info(f"Command '{command_name}' executed successfully.")
             else:
                 logger.error(f"Unknown command: {command_name}")
@@ -170,18 +166,16 @@ async def execute_command(command_name, params, address):
     async with BleakClient(address) as client:
         logger.info("Connected to the device")
         # Enable notify-based ACKs
-        ack_mgr = BleAckManager()
+        ack_mgr = AckManager()
         try:
-            await client.start_notify(NOTIFY_UUID, _make_notify_handler(ack_mgr))
+            await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
         except Exception as e:
             logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
         if command_name in COMMANDS:
             positional_args, keyword_args = build_command_args(params)
-            data = COMMANDS[command_name](*positional_args, **keyword_args)
-            if command_name in ("send_image"):
-                await send_gif_windowed(client, data, ack_mgr)
-            else:
-                await send_chunked(client, data, ack_mgr)
+            result = COMMANDS[command_name](*positional_args, **keyword_args)
+            plan = result if isinstance(result, SendPlan) else single_window_plan(command_name, result)
+            await send_plan(client, plan, ack_mgr, write_uuid=WRITE_UUID)
             logger.info(f"Command '{command_name}' executed successfully.")
         else:
             logger.error(f"Unknown command: {command_name}")
@@ -201,149 +195,7 @@ async def scan_devices():
     else:
         logger.info("No Bluetooth devices found.")
 
-class BleAckManager:
-    def __init__(self):
-        self.window_event = asyncio.Event()
-        self.all_event = asyncio.Event()
-
-    def reset(self):
-        self.window_event.clear()
-        self.all_event.clear()
-
-
-def _make_notify_handler(ack_mgr: BleAckManager):
-    def handler(_, data: bytes):
-        if not data:
-            return
-        try:
-            logging.getLogger(__name__).debug(f"Notify frame: {data.hex()}")
-        except Exception:
-            pass
-        if len(data) == 5 and data[0] == 0x05:
-            if data[4] in (0, 1):
-                ack_mgr.window_event.set()
-            elif data[4] == 3:
-                ack_mgr.window_event.set()
-                ack_mgr.all_event.set()
-            return
-        b0 = data[0]
-        b4 = data[4] if len(data) > 4 else None
-        if b0 == 0x05 and b4 is not None:
-            if b4 in (0, 1):
-                ack_mgr.window_event.set()
-            elif b4 == 3:
-                ack_mgr.window_event.set()
-                ack_mgr.all_event.set()
-    return handler
-
-
-def _parse_gif_transport(data: bytes):
-    """Parse single-frame GIF transport payload built by commands.py.
-    Format: [len_hi,len_lo] 0x03 0x00 0x00 <size:4 LE> <crc:4 LE> 0x02 0x01 <gif_bytes>
-    Returns dict with size_bytes, crc_bytes, tail_bytes, gif_bytes, or None if not GIF.
-    """
-    if len(data) < 2 + 13:
-        return None
-    offset = 2  # skip 2-byte length prefix
-    if data[offset] != 0x03 or data[offset + 1] != 0x00:
-        return None
-    option_byte = data[offset + 2]
-    size_bytes = data[offset + 3: offset + 7]
-    crc_bytes = data[offset + 7: offset + 11]
-    if data[offset + 11] != 0x02 or data[offset + 12] != 0x01:
-        return None
-    tail_bytes = data[offset + 11: offset + 13]
-    gif_len = int.from_bytes(size_bytes, "little")
-    gif_start = offset + 13
-    if gif_start + gif_len > len(data):
-        return None
-    gif_bytes = data[gif_start: gif_start + gif_len]
-    return {
-        "option": option_byte,
-        "size_bytes": size_bytes,
-        "crc_bytes": crc_bytes,
-        "tail_bytes": tail_bytes,
-        "gif_bytes": gif_bytes,
-    }
-
-
-def _length_prefix(frame_len: int) -> bytes:
-    """Return 2-byte big-endian length prefix equal to (frame_len + 2)."""
-    total = frame_len + 2
-    return total.to_bytes(2, "big")
-
-
-async def send_gif_windowed(client, data: bytes, ack_mgr: BleAckManager, *, chunk_size: int = 244, window_size: int = 12 * 1024, ack_timeout: float = 8.0):
-    parsed = _parse_gif_transport(data)
-    if not parsed:
-        await send_chunked(client, data, ack_mgr, chunk_size=chunk_size, window_size=window_size, ack_timeout=ack_timeout)
-        return
-
-    gif = parsed["gif_bytes"]
-    size_bytes = parsed["size_bytes"]
-    crc_bytes = parsed["crc_bytes"]
-
-    pos = 0
-    ack_mgr.reset()
-    window_index = 0
-    while pos < len(gif):
-        window_end = min(pos + window_size, len(gif))
-        chunk_payload = gif[pos:window_end]
-        option = 0x00 if window_index == 0 else 0x02
-        serial = 0x01 if window_index == 0 else 0x65
-        cur_tail = bytes([0x02, serial])
-        header = bytes([0x03, 0x00, option]) + size_bytes + crc_bytes + cur_tail
-        frame = header + chunk_payload
-        prefix_hex = get_frame_size("FFFF" + frame.hex(), 4)
-        try:
-            prefix = bytes.fromhex(prefix_hex)
-        except Exception:
-            prefix = _length_prefix(len(frame))
-        message = prefix + frame
-
-        ack_mgr.window_event.clear()
-        logging.getLogger(__name__).debug(f"Window {window_index}: option={option}, serial={serial}, prefix={prefix.hex()}, header={header.hex()[:32]}...")
-
-        wpos = 0
-        while wpos < len(message):
-            wend = min(wpos + chunk_size, len(message))
-            await client.write_gatt_char(WRITE_UUID, message[wpos:wend], response=True)
-            wpos = wend
-
-        try:
-            await asyncio.wait_for(ack_mgr.window_event.wait(), timeout=ack_timeout)
-        except asyncio.TimeoutError:
-            raise RuntimeError("cur12k_no_answer: no ack from device")
-
-        window_index += 1
-        pos = window_end
-
-    try:
-        await asyncio.wait_for(ack_mgr.all_event.wait(), timeout=ack_timeout)
-    except asyncio.TimeoutError:
-        pass
-
-
-async def send_chunked(client, data: bytes, ack_mgr: BleAckManager, *, chunk_size: int = 244, window_size: int = 12 * 1024, ack_timeout: float = 8.0):
-    total = len(data)
-    pos = 0
-    ack_mgr.reset()
-    while pos < total:
-        window_end = min(pos + window_size, total)
-        ack_mgr.window_event.clear()
-        while pos < window_end:
-            end = min(pos + chunk_size, window_end)
-            chunk = data[pos:end]
-            await client.write_gatt_char(WRITE_UUID, chunk, response=True)
-            pos = end
-        try:
-            await asyncio.wait_for(ack_mgr.window_event.wait(), timeout=ack_timeout)
-        except asyncio.TimeoutError:
-            raise RuntimeError("cur12k_no_answer: no ack from device")
-    try:
-        await asyncio.wait_for(ack_mgr.all_event.wait(), timeout=ack_timeout)
-    except asyncio.TimeoutError:
-        pass
+"""__main__ now only orchestrates CLI and delegates framing/segmentation to commands/transport."""
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WebSocket BLE Server")

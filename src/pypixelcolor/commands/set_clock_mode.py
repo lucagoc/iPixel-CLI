@@ -6,6 +6,7 @@
 from datetime import datetime
 
 # Locals
+from .base import single_window_plan
 from ..lib.convert import to_int, to_bool, validate_range, int_to_hex
 
 # Commands
@@ -39,4 +40,5 @@ def set_clock_mode(style=1, date="", show_date=True, format_24=True):
     params = bytes.fromhex(int_to_hex(style) + ("01" if format_24 else "00") + ("01" if show_date else "00"))
     date_bytes = bytes.fromhex(int_to_hex(year) + int_to_hex(month) + int_to_hex(day) + int_to_hex(day_of_week))
 
-    return header + params + date_bytes
+    payload = header + params + date_bytes
+    return single_window_plan("set_clock_mode", payload, requires_ack=True)

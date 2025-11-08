@@ -6,6 +6,7 @@
 from datetime import datetime
 
 # Locals
+from .base import single_window_plan
 from ..lib.convert import to_int, validate_range
 
 def set_time(hour=None, minute=None, second=None):
@@ -24,5 +25,6 @@ def set_time(hour=None, minute=None, second=None):
     validate_range(hour, 0, 23, "Hour")
     validate_range(minute, 0, 59, "Minute")
     validate_range(second, 0, 59, "Second")
-    
-    return bytes.fromhex("08000180") + bytes([hour, minute, second]) + bytes.fromhex("00")
+
+    payload = bytes.fromhex("08000180") + bytes([hour, minute, second]) + bytes.fromhex("00")
+    return single_window_plan("set_time", payload, requires_ack=True)

@@ -11,6 +11,7 @@ from logging import getLogger
 from ..lib.encode_text import encode_text
 from ..lib.bit_tools import switch_endian, CRC32_checksum
 from ..lib.convert import to_int, int_to_hex, validate_range
+from .base import single_window_plan
 
 logger = getLogger("ipixel-cli.commands.send_text")
 
@@ -85,5 +86,5 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
 
     total = header + checksum + save_slot_hex + number_of_characters + properties + characters
     logger.debug(f"Full command data: \n{total}")
-
-    return bytes.fromhex(total)
+    payload = bytes.fromhex(total)
+    return single_window_plan("send_text", payload, requires_ack=True)

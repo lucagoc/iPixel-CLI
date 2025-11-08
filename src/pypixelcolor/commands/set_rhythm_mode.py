@@ -2,6 +2,7 @@
 
 """
 
+from .base import single_window_plan
 from ..lib.convert import to_int, validate_range, int_to_hex
 
 def set_rhythm_mode(style=0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0"):
@@ -39,7 +40,8 @@ def set_rhythm_mode(style=0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l
         int_to_hex(to_int(l)) for l in [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11]
     )
 
-    return header + bytes.fromhex(int_to_hex(style)) + bytes.fromhex(data)
+    payload = header + bytes.fromhex(int_to_hex(style)) + bytes.fromhex(data)
+    return single_window_plan("set_rhythm_mode", payload, requires_ack=True)
 
 
 def set_rhythm_mode_2(style=0, t=0):
@@ -56,4 +58,5 @@ def set_rhythm_mode_2(style=0, t=0):
     t = to_int(t, "level")
     validate_range(t, 0, 7, "Level")
     
-    return header + bytes([t]) + bytes.fromhex(int_to_hex(style))
+    payload = header + bytes([t]) + bytes.fromhex(int_to_hex(style))
+    return single_window_plan("set_rhythm_mode_2", payload, requires_ack=True)
