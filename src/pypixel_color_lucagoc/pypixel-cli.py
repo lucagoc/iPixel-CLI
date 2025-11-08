@@ -4,8 +4,24 @@ import argparse
 import websockets
 import logging
 from bleak import BleakClient, BleakScanner
-from commands import *
-import bit_tools
+from lib.bit_tools import get_frame_size
+from commands import (
+    clear,
+    delete,
+    set_brightness,
+    set_clock_mode,
+    set_rhythm_mode,
+    set_fun_mode,
+    set_time,
+    set_fun_mode,
+    set_orientation,
+    set_power,
+    send_text,
+    send_image
+)
+
+WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
+NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
 class EmojiFormatter(logging.Formatter):
     EMOJI_MAP = {
@@ -38,22 +54,21 @@ def setup_logging(use_emojis=True):
 logger = logging.getLogger(__name__)
 
 COMMANDS = {
-    "clear": clear,
-    "set_brightness": set_brightness,
-    "set_clock_mode": set_clock_mode,
-    "set_rhythm_mode": set_rhythm_mode,
-    "set_rhythm_mode_2": set_rhythm_mode_2,
-    "set_time": set_time,
-    "set_fun_mode": set_fun_mode,
-    "set_pixel": set_pixel,
-    "delete_screen": delete_screen,
-    "send_text": send_text,
-    "set_speed" : set_speed,
-    "send_animation": send_animation,
+    "clear": clear.clear,
+    "set_brightness": set_brightness.set_brightness,
+    "set_clock_mode": set_clock_mode.set_clock_mode,
+    "set_rhythm_mode": set_rhythm_mode.set_rhythm_mode,
+    "set_rhythm_mode_2": set_rhythm_mode.set_rhythm_mode_2,
+    "set_time": set_time.set_time,
+    "set_fun_mode": set_fun_mode.set_fun_mode,
+    "set_pixel": set_fun_mode.set_pixel,
+    "delete_screen": delete.delete_screen,
+    "send_text": send_text.send_text,
+    "send_animation": send_image.send_animation,
     "set_orientation": set_orientation,
-    "send_png": send_png,
-    "led_on": led_on,
-    "led_off": led_off
+    "send_png": send_image.send_png,
+    "led_on": set_power.led_on,
+    "led_off": set_power.led_off
 }
 
 # Socket server
@@ -191,12 +206,6 @@ async def scan_devices():
             logger.info(f"  - {device.name} ({device.address})")
     else:
         logger.info("No Bluetooth devices found.")
-
-# Replace ipixelcli import with local helpers
-from bit_tools import get_frame_size
-
-WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
-NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
 class BleAckManager:
     def __init__(self):

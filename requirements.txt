@@ -1,4 +1,0 @@
-websockets
-bleak
-pillow
-crccheck
