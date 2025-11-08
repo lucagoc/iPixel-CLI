@@ -13,6 +13,7 @@ from bleak import BleakClient, BleakScanner
 
 # Locals
 from .lib.bit_tools import get_frame_size
+from .lib.emoji_formatter import EmojiFormatter
 from .commands import (
     clear,
     delete,
@@ -30,20 +31,6 @@ from .commands import (
 
 WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
 NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
-
-class EmojiFormatter(logging.Formatter):
-    EMOJI_MAP = {
-        'DEBUG': '🔍',
-        'INFO': 'ℹ️',
-        'WARNING': '⚠️',
-        'ERROR': '❌',
-        'CRITICAL': '🔥'
-    }
-    
-    def format(self, record):
-        emoji = self.EMOJI_MAP.get(record.levelname, '📝')
-        record.levelname = f"{emoji}"
-        return super().format(record)
 
 def setup_logging(use_emojis=True):
     log_format = '%(levelname)s [%(asctime)s] [%(name)s] %(message)s'
