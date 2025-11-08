@@ -101,7 +101,7 @@ async def handle_websocket(websocket, address):
                         data = COMMANDS[command_name](*positional_args, **keyword_args)
 
                         # Send using windowed GIF sender for GIF commands, else chunked
-                        if command_name in ("send_animation"):
+                        if command_name in ("send_image"):
                             await send_gif_windowed(client, data, ack_mgr)
                         else:
                             await send_chunked(client, data, ack_mgr)
@@ -154,7 +154,7 @@ async def run_multiple_commands(commands, address):
             if command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
                 data = COMMANDS[command_name](*positional_args, **keyword_args)
-                if command_name in ("send_animation"):
+                if command_name in ("send_image"):
                     await send_gif_windowed(client, data, ack_mgr)
                 else:
                     await send_chunked(client, data, ack_mgr)
@@ -178,7 +178,7 @@ async def execute_command(command_name, params, address):
         if command_name in COMMANDS:
             positional_args, keyword_args = build_command_args(params)
             data = COMMANDS[command_name](*positional_args, **keyword_args)
-            if command_name in ("send_animation"):
+            if command_name in ("send_image"):
                 await send_gif_windowed(client, data, ack_mgr)
             else:
                 await send_chunked(client, data, ack_mgr)
