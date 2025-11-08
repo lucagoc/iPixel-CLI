@@ -13,7 +13,6 @@ from bleak import BleakClient, BleakScanner
 from .lib.logging import setup_logging
 from .lib.transport.send_plan import send_plan
 from .lib.transport.ack_manager import AckManager
-from .lib.emoji_formatter import EmojiFormatter
 from .websocket import build_command_args
 from .commands import COMMANDS
 

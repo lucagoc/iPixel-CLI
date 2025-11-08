@@ -6,7 +6,9 @@ so the transport stays generic.
 """
 
 from ..lib.bit_tools import CRC32_checksum, get_frame_size
-from ..lib.transport.send_plan import SendPlan, Window, AckPolicy, single_window_plan
+from ..lib.transport.send_plan import (
+    SendPlan, Window, AckPolicy, single_window_plan
+)
 
 
 def _hex_len_prefix_for(inner_hex: str) -> bytes:

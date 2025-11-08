@@ -1,7 +1,3 @@
-"""
-Clear EEPROM command.
-"""
-
 from ..lib.transport.send_plan import single_window_plan
 
 def clear():

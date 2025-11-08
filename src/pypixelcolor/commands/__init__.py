@@ -21,7 +21,7 @@ COMMANDS = {
     "set_time": set_time.set_time,
     "set_fun_mode": set_fun_mode.set_fun_mode,
     "set_pixel": set_fun_mode.set_pixel,
-    "delete_screen": delete.delete_screen,
+    "delete": delete.delete,
     "send_text": send_text.send_text,
     "set_orientation": set_orientation.set_orientation,
     "send_image": send_image.send_image,
