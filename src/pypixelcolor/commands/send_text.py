@@ -15,7 +15,19 @@ from ..lib.convert import to_int, int_to_hex, validate_range
 logger = getLogger("ipixel-cli.commands.send_text")
 
 def encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> str:
-    """Encode text to be displayed on the device."""
+    """Encode text to be displayed on the device.
+
+    Args:
+        text (str): The text to encode.
+        matrix_height (int): The height of the LED matrix.
+        color (str): The color in hex format (e.g., 'ffffff').
+        font (str): The font name to use.
+        font_offset (tuple[int, int]): The (x, y) offset for the font.
+        font_size (int): The font size.
+
+    Returns:
+        str: The encoded text as a hexadecimal string.
+    """
     result = ""
     matrix_height_hex = f"{matrix_height:02x}"
     
@@ -32,7 +44,27 @@ def encode_text(text: str, matrix_height: int, color: str, font: str, font_offse
     return result.lower()
 
 def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=0, matrix_height=16):
-    """Send a text to the device with configurable parameters."""
+    """Send a text to the device with configurable parameters.
+
+    Args:
+        text (str): The text to send.
+        rainbow_mode (int, optional): Rainbow mode (0-9). Defaults to 0.
+        animation (int, optional): Animation type (0-7, except 3 and 4). Defaults to 0.
+        save_slot (int, optional): Save slot (1-10). Defaults to 1.
+        speed (int, optional): Animation speed (0-100). Defaults to 80.
+        color (str, optional): Text color in hex. Defaults to "ffffff".
+        font (str, optional): Font name. Defaults to "default".
+        font_offset_x (int, optional): Font X offset. Defaults to 0.
+        font_offset_y (int, optional): Font Y offset. Defaults to 0.
+        font_size (int, optional): Font size. Defaults to 0 (auto).
+        matrix_height (int, optional): Matrix height. Defaults to 16.
+
+    Returns:
+        bytes: Encoded command to send to the device.
+
+    Raises:
+        ValueError: If an invalid animation is selected or parameters are out of range.
+    """
     
     rainbow_mode = to_int(rainbow_mode, "rainbow mode")
     animation = to_int(animation, "animation")

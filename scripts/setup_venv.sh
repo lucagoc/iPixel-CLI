@@ -13,5 +13,8 @@ source .venv/bin/activate
 # Install dependencies from requirements.txt
 pip install -r requirements.txt
 
+# Install pydoc-markdown for documentation generation
+pip install pydoc-markdown
+
 # Display a confirmation message
 echo "Virtual environment set up and activated."
