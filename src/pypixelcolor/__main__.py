@@ -72,9 +72,8 @@ COMMANDS = {
     "set_pixel": set_fun_mode.set_pixel,
     "delete_screen": delete.delete_screen,
     "send_text": send_text.send_text,
-    "send_animation": send_image.send_animation,
-    "set_orientation": set_orientation,
-    "send_png": send_image.send_png,
+    "set_orientation": set_orientation.set_orientation,
+    "send_image": send_image.send_image,
     "led_on": set_power.led_on,
     "led_off": set_power.led_off
 }

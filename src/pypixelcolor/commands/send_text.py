@@ -8,40 +8,11 @@
 from logging import getLogger
 
 # Locals
-from ..lib.bit_tools import switch_endian, invert_frames, logic_reverse_bits_order, CRC32_checksum
-from ..lib.img_2_pix import char_to_hex
+from ..lib.encode_text import encode_text
+from ..lib.bit_tools import switch_endian, CRC32_checksum
 from ..lib.convert import to_int, int_to_hex, validate_range
 
 logger = getLogger("ipixel-cli.commands.send_text")
-
-def encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> str:
-    """Encode text to be displayed on the device.
-
-    Args:
-        text (str): The text to encode.
-        matrix_height (int): The height of the LED matrix.
-        color (str): The color in hex format (e.g., 'ffffff').
-        font (str): The font name to use.
-        font_offset (tuple[int, int]): The (x, y) offset for the font.
-        font_size (int): The font size.
-
-    Returns:
-        str: The encoded text as a hexadecimal string.
-    """
-    result = ""
-    matrix_height_hex = f"{matrix_height:02x}"
-    
-    for char in text:
-        char_hex, char_width = char_to_hex(char, matrix_height, font=font, font_offset=font_offset, font_size=font_size)
-        char_hex_converted = logic_reverse_bits_order(switch_endian(invert_frames(char_hex)))
-        char_width_hex = f"{char_width:02x}"
-        if char_hex:
-            result += "80" + color +  char_width_hex + matrix_height_hex + char_hex_converted
-            
-            # Debugging output
-            logger.debug(result)
-            
-    return result.lower()
 
 def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="default", font_offset_x=0, font_offset_y=0, font_size=0, matrix_height=16):
     """Send a text to the device with configurable parameters.
