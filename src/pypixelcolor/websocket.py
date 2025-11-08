@@ -6,6 +6,7 @@ WebSocket server for BLE communication
 import json
 import logging
 import argparse
+import asyncio
 import websockets
 from bleak import BleakClient
 
@@ -96,6 +97,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     setup_logging(use_emojis=not args.noemojis)
-    
-    import asyncio
+
     asyncio.run(start_server(args.host, args.port, args.address))

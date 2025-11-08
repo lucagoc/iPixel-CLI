@@ -25,6 +25,5 @@ COMMANDS = {
     "send_text": send_text.send_text,
     "set_orientation": set_orientation.set_orientation,
     "send_image": send_image.send_image,
-    "led_on": set_power.led_on,
-    "led_off": set_power.led_off
+    "set_power": set_power.set_power,
 }

@@ -3,12 +3,11 @@ Set power command.
 """
 from ..lib.transport.send_plan import single_window_plan
 
-def led_off():
-    """Turn the LED off."""
-    payload = bytes.fromhex("0500070100")
-    return single_window_plan("led_off", payload, requires_ack=True)
+def set_power(on: bool):
+    """Set the LED power state.
 
-def led_on():
-    """Turn the LED on."""
-    payload = bytes.fromhex("0500070101")
-    return single_window_plan("led_on", payload, requires_ack=True)
+    Args:
+        on: True to turn on, False to turn off.
+    """
+    payload = bytes.fromhex(f"05000701{'01' if on else '00'}")
+    return single_window_plan("set_power", payload, requires_ack=True)
