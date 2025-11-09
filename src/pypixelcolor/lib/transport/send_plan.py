@@ -5,12 +5,10 @@ from logging import getLogger
 
 from .ack_manager import AckManager, AckPolicy
 from .window import Window
+from ..constants import NOTIFY_UUID, WRITE_UUID
 from ..command_result import CommandResult
 
 logger = getLogger(__name__)
-
-WRITE_UUID = "0000fa02-0000-1000-8000-00805f9b34fb"
-NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
 @dataclass
 class SendPlan:

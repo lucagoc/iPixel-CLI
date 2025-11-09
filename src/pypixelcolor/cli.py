@@ -8,13 +8,12 @@ import argparse
 import logging
 from bleak import BleakClient, BleakScanner
 
+from .lib.constants import NOTIFY_UUID
 from .lib.logging import setup_logging
 from .lib.transport.send_plan import send_plan
 from .lib.transport.ack_manager import AckManager
 from .websocket import build_command_args
 from .commands import COMMANDS
-
-NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
 logger = logging.getLogger(__name__)
 

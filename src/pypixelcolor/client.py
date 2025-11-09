@@ -8,13 +8,12 @@ import logging
 from typing import Optional
 from bleak import BleakClient
 
+from .lib.constants import NOTIFY_UUID
 from .lib.transport.send_plan import send_plan
 from .lib.transport.ack_manager import AckManager
 from .commands import COMMANDS
 
 logger = logging.getLogger(__name__)
-
-NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
 def _create_async_method(command_name: str, command_func):
     """Create an async method for a command.

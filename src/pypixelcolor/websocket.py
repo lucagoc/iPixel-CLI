@@ -10,14 +10,13 @@ import asyncio
 import websockets
 from bleak import BleakClient
 
+from .lib.constants import NOTIFY_UUID
 from .lib.logging import setup_logging
 from .lib.transport.send_plan import send_plan
 from .lib.transport.ack_manager import AckManager
 from .commands import COMMANDS
 
 logger = logging.getLogger(__name__)
-
-NOTIFY_UUID = "0000fa03-0000-1000-8000-00805f9b34fb"
 
 def build_command_args(params):
     """Parse command parameters into positional and keyword arguments."""
