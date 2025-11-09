@@ -8,6 +8,8 @@ so the transport stays generic.
 import logging
 from pathlib import Path
 from typing import Union, Optional
+from PIL import Image
+from io import BytesIO
 from ..lib.bit_tools import CRC32_checksum, get_frame_size
 from ..lib.transport.send_plan import SendPlan, Window, single_window_plan
 from ..lib.device_info import DeviceInfo
@@ -35,6 +37,91 @@ def _load_from_file(path: Path) -> tuple[bytes, bool]:
     return file_bytes, is_gif
 
 
+def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_height: int) -> bytes:
+    """Resize image to target dimensions.
+    
+    Args:
+        file_bytes: Original image data.
+        is_gif: Whether the image is a GIF.
+        target_width: Target width in pixels.
+        target_height: Target height in pixels.
+        
+    Returns:
+        Resized image data as bytes.
+    """
+    img = Image.open(BytesIO(file_bytes))
+    
+    # Check if resize is needed
+    needs_resize = img.size != (target_width, target_height)
+    
+    # Check if conversion from palette mode is needed
+    needs_conversion = img.mode in ('P', 'PA', 'L', 'LA')
+    
+    if not needs_resize and not needs_conversion:
+        logger.debug(f"Image already at target size {target_width}x{target_height} and in correct mode")
+        return file_bytes
+    
+    if needs_resize:
+        logger.info(f"Resizing image from {img.size[0]}x{img.size[1]} to {target_width}x{target_height}")
+    
+    if needs_conversion:
+        logger.info(f"Converting image from mode {img.mode} to RGB (removing palette)")
+    
+    if is_gif:
+        # Handle animated GIF
+        frames = []
+        durations = []
+        try:
+            while True:
+                # Resize frame with high-quality resampling
+                resized_frame = img.resize((target_width, target_height), Image.Resampling.LANCZOS) if needs_resize else img
+                # Always convert to RGB to remove palette
+                frames.append(resized_frame.convert('RGB'))
+                durations.append(img.info.get('duration', 100))
+                img.seek(img.tell() + 1)
+        except EOFError:
+            pass  # End of frames
+        
+        # Save resized GIF
+        output = BytesIO()
+        frames[0].save(
+            output,
+            format='GIF',
+            save_all=True,
+            append_images=frames[1:],
+            duration=durations,
+            loop=img.info.get('loop', 0)
+        )
+        
+        # Size
+        logger.info(f"Resized GIF to {len(output.getvalue())} bytes")
+        
+        # Debug: save resized GIF
+        debug_path = Path("tmp/resized_debug.gif")
+        debug_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(debug_path, "wb") as f:
+            f.write(output.getvalue())
+        logger.debug(f"Saved resized GIF to {debug_path}")
+        
+        return output.getvalue()
+    else:
+        # Handle static image (PNG)
+        resized_img = img.resize((target_width, target_height), Image.Resampling.LANCZOS) if needs_resize else img
+        # Convert to RGB to remove palette (P mode) and ensure compatibility
+        resized_img = resized_img.convert('RGB')
+        output = BytesIO()
+        resized_img.save(output, format='PNG')
+        
+        # Debug: save resized PNG
+        debug_path = Path("tmp/resized_debug.png")
+        debug_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(debug_path, "wb") as f:
+            f.write(output.getvalue())
+        logger.debug(f"Saved resized PNG to {debug_path}")
+        
+        return output.getvalue()
+
+
 def _load_from_hex(hex_string: str) -> tuple[bytes, bool]:
     """Load image data from hex string.
     
@@ -60,12 +147,9 @@ def send_image(path_or_hex: Union[str, Path], device_info: Optional[DeviceInfo] 
         A SendPlan for sending the image/animation.
         
     Note:
-        If device_info is available, the command will log the target device dimensions
-        for reference. Future versions may add automatic image resizing/validation.
+        If device_info is available, the image will be automatically resized
+        to match the target device dimensions if necessary.
     """
-    if device_info is not None:
-        logger.info(f"Sending image to device with {device_info.width}x{device_info.height} display")
-    
     # Robuste detection: try as Path first, fallback to hex
     try:
         path = Path(path_or_hex)
@@ -77,6 +161,17 @@ def send_image(path_or_hex: Union[str, Path], device_info: Optional[DeviceInfo] 
     except (ValueError, OSError):
         # Path construction or file reading failed, treat as hex
         file_bytes, is_gif = _load_from_hex(str(path_or_hex))
+    
+    # Resize image if device_info is available and image is not hex string
+    if device_info is not None and isinstance(path_or_hex, (str, Path)):
+        try:
+            path = Path(path_or_hex)
+            if path.exists() and path.is_file():
+                # Only resize actual image files, not hex strings
+                file_bytes = _resize_image(file_bytes, is_gif, device_info.width, device_info.height)
+        except (ValueError, OSError):
+            # If it's a hex string, skip resizing
+            pass
 
     image_hex = file_bytes.hex()
     checksum = CRC32_checksum(image_hex)  # endian-switched hex

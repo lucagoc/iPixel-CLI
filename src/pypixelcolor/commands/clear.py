@@ -1,7 +1,9 @@
 from ..lib.transport.send_plan import single_window_plan
 
 def clear():
-    """Clear the EEPROM."""
+    """
+    Clears the EEPROM.
+    """
     cmd = bytes([
         4,     # Command header
         0,     # Reserved
