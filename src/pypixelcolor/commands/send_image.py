@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import Union, Optional
 from PIL import Image
+from PIL.Image import Palette
 from io import BytesIO
 from ..lib.bit_tools import CRC32_checksum, get_frame_size
 from ..lib.transport.send_plan import SendPlan, Window, single_window_plan
@@ -110,18 +111,38 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         # Handle animated GIF
         frames = []
         durations = []
+        disposal_methods = []
+        
         try:
+            frame_index = 0
             while True:
                 # Resize and crop frame with aspect ratio preserved
                 processed_frame = _resize_and_crop_image(img, target_width, target_height) if needs_resize else img
-                # Always convert to RGB to remove palette
-                frames.append(processed_frame.convert('RGB'))
+                
+                # Keep frames in palette mode (P) for GIF compatibility
+                # Only convert if necessary, preserving the original palette structure
+                if processed_frame.mode in ('P', 'PA'):
+                    # Already in palette mode, keep it
+                    frames.append(processed_frame)
+                elif processed_frame.mode in ('RGBA', 'LA'):
+                    # Has transparency, convert to P with adaptive palette
+                    frames.append(processed_frame.convert('P', palette=Palette.ADAPTIVE, colors=256))
+                else:
+                    # No transparency, convert to P with adaptive palette
+                    frames.append(processed_frame.convert('P', palette=Palette.ADAPTIVE, colors=256))
+                
+                # Preserve animation metadata
                 durations.append(img.info.get('duration', 100))
-                img.seek(img.tell() + 1)
+                disposal_methods.append(img.info.get('disposal', 2))  # 2 = restore to background
+                
+                frame_index += 1
+                img.seek(frame_index)
         except EOFError:
             pass  # End of frames
         
-        # Save resized GIF
+        logger.info(f"Processing {len(frames)} frames for animated GIF")
+        
+        # Save resized GIF with preserved animation metadata
         output = BytesIO()
         frames[0].save(
             output,
@@ -129,7 +150,9 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
             save_all=True,
             append_images=frames[1:],
             duration=durations,
-            loop=img.info.get('loop', 0)
+            loop=img.info.get('loop', 0),
+            disposal=disposal_methods[0] if disposal_methods else 2,
+            optimize=False  # Disable optimization to preserve exact frame data
         )
         
         # Size
