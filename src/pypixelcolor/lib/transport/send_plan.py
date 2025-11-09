@@ -30,7 +30,7 @@ def single_window_plan(plan_id: str, data: bytes, *,
                        ack_policy: AckPolicy | None = None,
                        response_handler: Optional[Callable[[Any, bytes], Awaitable[Any]]] = None) -> SendPlan:
     if ack_policy is None:
-        ack_policy = AckPolicy()
+        ack_policy = AckPolicy(ack_per_window=requires_ack, ack_final=False)
     return SendPlan(
         id=plan_id,
         windows=[Window(data=data, requires_ack=requires_ack)],
@@ -101,6 +101,7 @@ async def send_plan(client, plan: SendPlan, ack_mgr: AckManager, *, write_uuid: 
                 await asyncio.wait_for(ack_mgr.all_event.wait(), timeout=ack_timeout)
             except asyncio.TimeoutError:
                 # Some commands might not emit final ack; tolerate by default
+                logger.warning(f"Timeout waiting for final ACK for plan '{plan.id}'")
                 pass
         
         # If expecting a response, wait for it

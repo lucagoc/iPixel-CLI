@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-
-"""
-
 # Imports
 from logging import getLogger
 
@@ -15,7 +11,18 @@ from ..lib.transport.send_plan import single_window_plan
 
 logger = getLogger("ipixel-cli.commands.send_text")
 
-def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="ffffff", font="0_VCR_OSD_MONO", font_offset_x=0, font_offset_y=0, font_size=0, matrix_height=16):
+def send_text(text: str, 
+              rainbow_mode: int = 0, 
+              animation: int = 0, 
+              save_slot: int = 1, 
+              speed: int = 80, 
+              color: str = "ffffff", 
+              font: str = "0_VCR_OSD_MONO", 
+              font_offset_x: int = 0, 
+              font_offset_y: int = 0, 
+              font_size: int = 0, 
+              matrix_height: int = 16
+              ):
     """
     Send a text to the device with configurable parameters.
 
@@ -88,4 +95,5 @@ def send_text(text, rainbow_mode=0, animation=0, save_slot=1, speed=80, color="f
     total = header + checksum + save_slot_hex + number_of_characters + properties + characters
     logger.debug(f"Full command data: \n{total}")
     payload = bytes.fromhex(total)
+    
     return single_window_plan("send_text", payload, requires_ack=True)
