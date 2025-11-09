@@ -37,11 +37,17 @@ async def run_multiple_commands(commands, address):
         for cmd in commands:
             command_name = cmd[0]
             params = cmd[1:]
+            
             if command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
                 plan = COMMANDS[command_name](*positional_args, **keyword_args)
-                await send_plan(client, plan, ack_mgr)
-                logger.info(f"Command '{command_name}' executed successfully.")
+                result = await send_plan(client, plan, ack_mgr)
+                
+                # Display result if it has data
+                if result.data is not None:
+                    logger.info(result.format_for_display())
+                else:
+                    logger.info(f"Command '{command_name}' executed successfully.")
             else:
                 logger.error(f"Unknown command: {command_name}")
         try:
@@ -60,19 +66,27 @@ async def execute_command(command_name, params, address):
     """
     async with BleakClient(address) as client:
         logger.info("Connected to the device")
+        
         # Enable notify-based ACKs
         ack_mgr = AckManager()
         try:
             await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
         except Exception as e:
             logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
+        
         if command_name in COMMANDS:
             positional_args, keyword_args = build_command_args(params)
             plan = COMMANDS[command_name](*positional_args, **keyword_args)
-            await send_plan(client, plan, ack_mgr)
-            logger.info(f"Command '{command_name}' executed successfully.")
+            result = await send_plan(client, plan, ack_mgr)
+            
+            # Display result if it has data
+            if result.data is not None:
+                logger.info(result.format_for_display())
+            else:
+                logger.info(f"Command '{command_name}' executed successfully.")
         else:
             logger.error(f"Unknown command: {command_name}")
+        
         try:
             await client.stop_notify(NOTIFY_UUID)
         except Exception:

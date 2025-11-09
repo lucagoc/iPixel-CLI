@@ -58,12 +58,29 @@ async def handle_websocket(websocket, address):
                         # Separate positional and keyword arguments
                         positional_args, keyword_args = build_command_args(params)
 
-                        # Build the SendPlan (or wrap legacy bytes to plan)
+                        # Build the SendPlan and execute it
                         plan = COMMANDS[command_name](*positional_args, **keyword_args)
-                        await send_plan(client, plan, ack_mgr)
+                        result = await send_plan(client, plan, ack_mgr)
 
                         # Prepare the response
                         response = {"status": "success", "command": command_name}
+                        
+                        # If the command returned data, include it in the response
+                        if result.data is not None:
+                            # Try to serialize the data
+                            try:
+                                from dataclasses import asdict, is_dataclass
+                                # If data is a dataclass, convert to dict
+                                if is_dataclass(result.data) and not isinstance(result.data, type):
+                                    response["data"] = asdict(result.data)
+                                # If data has a __dict__, use it
+                                elif hasattr(result.data, '__dict__'):
+                                    response["data"] = result.data.__dict__
+                                else:
+                                    response["data"] = str(result.data)
+                            except Exception as e:
+                                logger.warning(f"Failed to serialize command data: {e}")
+                                response["data"] = str(result.data)
                     else:
                         response = {"status": "error", "message": "Commande inconnue"}
                 except Exception as e:

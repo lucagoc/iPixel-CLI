@@ -35,9 +35,18 @@ def _create_async_method(command_name: str, command_func):
         # Build the SendPlan
         plan = command_func(*args, **kwargs)
         
-        # Send the plan
-        await send_plan(self._client, plan, self._ack_mgr)
-        logger.info(f"Command '{command_name}' executed successfully")
+        # Send the plan and get the result
+        result = await send_plan(self._client, plan, self._ack_mgr)
+        
+        # Log success
+        if result.data is None:
+            logger.info(f"Command '{command_name}' executed successfully")
+        else:
+            logger.debug(f"Command '{command_name}' executed successfully with data")
+        
+        # Return the data directly (not the CommandResult wrapper)
+        # This makes the API cleaner: client.get_device_info() returns DeviceInfo, not CommandResult
+        return result.data
     
     # Preserve the original function's metadata for better introspection
     method.__name__ = command_name
