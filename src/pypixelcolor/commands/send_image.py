@@ -37,8 +37,47 @@ def _load_from_file(path: Path) -> tuple[bytes, bool]:
     return file_bytes, is_gif
 
 
+def _resize_and_crop_image(img: Image.Image, target_width: int, target_height: int) -> Image.Image:
+    """Resize and crop image to target dimensions while preserving aspect ratio.
+    
+    Args:
+        img: PIL Image object.
+        target_width: Target width in pixels.
+        target_height: Target height in pixels.
+        
+    Returns:
+        Resized and cropped PIL Image.
+    """
+    # Calculate aspect ratios
+    img_aspect = img.width / img.height
+    target_aspect = target_width / target_height
+    
+    if img_aspect > target_aspect:
+        # Image is wider than target, fit by height and crop width
+        new_height = target_height
+        new_width = int(target_height * img_aspect)
+    else:
+        # Image is taller than target, fit by width and crop height
+        new_width = target_width
+        new_height = int(target_width / img_aspect)
+    
+    # Resize with aspect ratio preserved
+    img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    
+    # Calculate crop coordinates to center the image
+    left = (new_width - target_width) // 2
+    top = (new_height - target_height) // 2
+    right = left + target_width
+    bottom = top + target_height
+    
+    # Crop to exact target size
+    img_cropped = img_resized.crop((left, top, right, bottom))
+    
+    return img_cropped
+
+
 def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_height: int) -> bytes:
-    """Resize image to target dimensions.
+    """Resize image to target dimensions while preserving aspect ratio (with center crop).
     
     Args:
         file_bytes: Original image data.
@@ -62,7 +101,7 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         return file_bytes
     
     if needs_resize:
-        logger.info(f"Resizing image from {img.size[0]}x{img.size[1]} to {target_width}x{target_height}")
+        logger.info(f"Resizing image from {img.size[0]}x{img.size[1]} to {target_width}x{target_height} (preserving aspect ratio with center crop)")
     
     if needs_conversion:
         logger.info(f"Converting image from mode {img.mode} to RGB (removing palette)")
@@ -73,10 +112,10 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         durations = []
         try:
             while True:
-                # Resize frame with high-quality resampling
-                resized_frame = img.resize((target_width, target_height), Image.Resampling.LANCZOS) if needs_resize else img
+                # Resize and crop frame with aspect ratio preserved
+                processed_frame = _resize_and_crop_image(img, target_width, target_height) if needs_resize else img
                 # Always convert to RGB to remove palette
-                frames.append(resized_frame.convert('RGB'))
+                frames.append(processed_frame.convert('RGB'))
                 durations.append(img.info.get('duration', 100))
                 img.seek(img.tell() + 1)
         except EOFError:
@@ -106,7 +145,7 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         return output.getvalue()
     else:
         # Handle static image (PNG)
-        resized_img = img.resize((target_width, target_height), Image.Resampling.LANCZOS) if needs_resize else img
+        resized_img = _resize_and_crop_image(img, target_width, target_height) if needs_resize else img
         # Convert to RGB to remove palette (P mode) and ensure compatibility
         resized_img = resized_img.convert('RGB')
         output = BytesIO()
