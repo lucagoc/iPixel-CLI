@@ -16,9 +16,9 @@ def set_fun_mode(enable : bool = False):
     payload = bytes([
         5,                        # Command ID for set_fun_mode
         0,                        # Subcommand ID
-        4,                        #
-        1,                        #
-        1 if bool(enable) else 0   # Fun mode value
+        4,                        # Reserved
+        1,                        # Reserved
+        1 if bool(enable) else 0  # Fun mode value
     ])
     return single_window_plan("set_fun_mode", payload)
 
@@ -36,7 +36,7 @@ def set_pixel(x: int, y: int, color: str, device_info: Optional[DeviceInfo] = No
     y = int(y)
     if device_info:
         if not (0 <= x <= device_info.width - 1 and 0 <= y <= device_info.height - 1):
-            raise ValueError("Coordinates x and y must be between 0 and 15.")
+            raise ValueError(f"Invalid coordinates range. Range are x[0:{device_info.width-1}] y[0:{device_info.height-1}]")
     if not (isinstance(color, str) and len(color) == 6 and all(c in '0123456789abcdefABCDEF' for c in color)):
         raise ValueError("Color must be a 6-character hexadecimal string.")
     payload = bytes([
