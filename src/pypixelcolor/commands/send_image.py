@@ -159,11 +159,11 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         logger.info(f"Resized GIF to {len(output.getvalue())} bytes")
         
         # Debug: save resized GIF
-        debug_path = Path("tmp/resized_debug.gif")
-        debug_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(debug_path, "wb") as f:
-            f.write(output.getvalue())
-        logger.debug(f"Saved resized GIF to {debug_path}")
+        # debug_path = Path("tmp/resized_debug.gif")
+        # debug_path.parent.mkdir(parents=True, exist_ok=True)
+        # with open(debug_path, "wb") as f:
+        #     f.write(output.getvalue())
+        # logger.debug(f"Saved resized GIF to {debug_path}")
         
         return output.getvalue()
     else:
@@ -175,11 +175,11 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         resized_img.save(output, format='PNG')
         
         # Debug: save resized PNG
-        debug_path = Path("tmp/resized_debug.png")
-        debug_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(debug_path, "wb") as f:
-            f.write(output.getvalue())
-        logger.debug(f"Saved resized PNG to {debug_path}")
+        # debug_path = Path("tmp/resized_debug.png")
+        # debug_path.parent.mkdir(parents=True, exist_ok=True)
+        # with open(debug_path, "wb") as f:
+        #     f.write(output.getvalue())
+        # logger.debug(f"Saved resized PNG to {debug_path}")
         
         return output.getvalue()
 
