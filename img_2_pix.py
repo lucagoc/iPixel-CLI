@@ -148,7 +148,6 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
             # Clamp text_width between min and max values to prevent crash
             # Values tested on 16px height device
             # Might be different for 20px or 24px devices
-            #min_width, max_width = (9,16)
             min_width, max_width, step_width = minmax_width
             text_width = max(min_width, min(text_width, max_width))
             text_width = min([i if i>=text_width else max_width for i in range(min_width, max_width+1, step_width)])
@@ -164,7 +163,7 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
             d.text(font_offset, character, fill=1, anchor="mm", font=font_obj)
 
             img_rgb = img.convert('RGB')
-            #img_rgb.save(cache_file)
+            img_rgb.save(cache_file)
             
             return charimg_to_hex_string(img_rgb)
     except Exception as e:
