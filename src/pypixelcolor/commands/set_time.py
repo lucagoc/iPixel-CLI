@@ -1,30 +1,47 @@
-"""
-
-"""
-
 # Imports
 from datetime import datetime
+from typing import Optional
 
 # Locals
 from ..lib.transport.send_plan import single_window_plan
-from ..lib.convert import to_int, validate_range
 
-def set_time(hour=None, minute=None, second=None):
+def set_time(hour: Optional[int] = None, minute: Optional[int] = None, second: Optional[int] = None):
     """
-    Set the time of the device. If no time is provided, it uses the current system time.
+    Set the device time.
+    Note : Command is the same as get_device_info.
+    
+    Args:
+        hour: Hour to set (0-23). If None, uses current hour.
+        minute: Minute to set (0-59). If None, uses current minute.
+        second: Second to set (0-59). If None, uses current second.
+    
+    Returns:
+        A SendPlan to set the device time.
     """
+    # Get current time if any component is None
     if hour is None or minute is None or second is None:
         now = datetime.now()
-        hour = now.hour
-        minute = now.minute
-        second = now.second
-    hour = to_int(hour, "hour")
-    minute = to_int(minute, "minute")
-    second = to_int(second, "second")
+        hour = now.hour if hour is None else hour
+        minute = now.minute if minute is None else minute
+        second = now.second if second is None else second
+        
+    # Validate
+    if not (0 <= int(hour) <= 23):
+        raise ValueError("Hour must be between 0 and 23")
+    if not (0 <= int(minute) <= 59):
+        raise ValueError("Minute must be between 0 and 59")
+    if not (0 <= int(second) <= 59):
+        raise ValueError("Second must be between 0 and 59")
     
-    validate_range(hour, 0, 23, "Hour")
-    validate_range(minute, 0, 59, "Minute")
-    validate_range(second, 0, 59, "Second")
-
-    payload = bytes.fromhex("08000180") + bytes([hour, minute, second]) + bytes.fromhex("00")
-    return single_window_plan("set_time", payload, requires_ack=True)
+    # Build command
+    cmd = bytes([
+        8,      # Command header
+        0,      # Reserved
+        1,      # sub-command
+        0x80,   # -128
+        int(hour),
+        int(minute),
+        int(second),
+        0
+    ])
+    return single_window_plan("set_time", cmd, requires_ack=False)

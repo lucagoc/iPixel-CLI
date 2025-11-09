@@ -1,5 +1,6 @@
 """
 Get device information command.
+# Same as set time command.
 """
 
 import logging
@@ -12,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def build_get_device_info_command() -> bytes:
-    """Build the get device info command payload.
+    """
+    Build the get device info command payload.
     
     Command format: [8, 0, 1, 128, hour, minute, second, language]
     
@@ -34,7 +36,8 @@ def build_get_device_info_command() -> bytes:
 
 
 async def _handle_device_info_response(client, response: bytes) -> DeviceInfo:
-    """Parse the device info response.
+    """
+    Parse the device info response.
     
     Args:
         client: BleakClient (unused but required by response_handler signature).
@@ -48,10 +51,11 @@ async def _handle_device_info_response(client, response: bytes) -> DeviceInfo:
 
 
 def get_device_info():
-    """Return a SendPlan for requesting device information.
+    """
+    Return a SendPlan for requesting device information.
     
-    This command includes a response_handler, so send_plan() will automatically
-    capture and parse the response.
+    This command includes a response_handler, so send_plan() 
+    will automatically capture and parse the response.
     
     Returns:
         A SendPlan with response handling for device info.

@@ -59,4 +59,4 @@ def set_rhythm_mode_2(style=0, t=0):
     validate_range(t, 0, 7, "Level")
     
     payload = header + bytes([t]) + bytes.fromhex(int_to_hex(style))
-    return single_window_plan("set_rhythm_mode_2", payload, requires_ack=True)
+    return single_window_plan("set_rhythm_mode_2", payload)

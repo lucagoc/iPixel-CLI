@@ -96,4 +96,4 @@ def send_text(text: str,
     logger.debug(f"Full command data: \n{total}")
     payload = bytes.fromhex(total)
     
-    return single_window_plan("send_text", payload, requires_ack=True)
+    return single_window_plan("send_text", payload, requires_ack=False)

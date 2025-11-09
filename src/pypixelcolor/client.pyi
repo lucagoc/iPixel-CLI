@@ -33,7 +33,7 @@ class AsyncClient:
     async def send_image(self, path_or_hex: Union[str, pathlib._local.Path]) -> None:
         """Return a SendPlan for an image (PNG) or animation (GIF)."""
         ...
-    async def send_text(self, text, rainbow_mode = 0, animation = 0, save_slot = 1, speed = 80, color = "ffffff", font = "0_VCR_OSD_MONO", font_offset_x = 0, font_offset_y = 0, font_size = 0, matrix_height = 16) -> None:
+    async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: int = 16) -> None:
         """Send a text to the device with configurable parameters."""
         ...
     async def set_brightness(self, value) -> None:
@@ -60,8 +60,8 @@ class AsyncClient:
     async def set_rhythm_mode_2(self, style = 0, t = 0) -> None:
         """Set the rhythm mode of the device (alternative version)."""
         ...
-    async def set_time(self, hour = None, minute = None, second = None) -> None:
-        """Set the time of the device. If no time is provided, it uses the current system time."""
+    async def set_time(self, hour: Optional[int] = None, minute: Optional[int] = None, second: Optional[int] = None) -> None:
+        """Set the device time."""
         ...
     async def __aenter__(self) -> AsyncClient: ...
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None: ...
@@ -92,7 +92,7 @@ class Client:
     def send_image(self, path_or_hex: Union[str, pathlib._local.Path]) -> None:
         """Return a SendPlan for an image (PNG) or animation (GIF)."""
         ...
-    def send_text(self, text, rainbow_mode = 0, animation = 0, save_slot = 1, speed = 80, color = "ffffff", font = "0_VCR_OSD_MONO", font_offset_x = 0, font_offset_y = 0, font_size = 0, matrix_height = 16) -> None:
+    def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: int = 16) -> None:
         """Send a text to the device with configurable parameters."""
         ...
     def set_brightness(self, value) -> None:
@@ -119,8 +119,8 @@ class Client:
     def set_rhythm_mode_2(self, style = 0, t = 0) -> None:
         """Set the rhythm mode of the device (alternative version)."""
         ...
-    def set_time(self, hour = None, minute = None, second = None) -> None:
-        """Set the time of the device. If no time is provided, it uses the current system time."""
+    def set_time(self, hour: Optional[int] = None, minute: Optional[int] = None, second: Optional[int] = None) -> None:
+        """Set the device time."""
         ...
     def __enter__(self) -> Client: ...
     def __exit__(self, exc_type, exc_val, exc_tb) -> None: ...

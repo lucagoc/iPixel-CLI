@@ -1,13 +1,22 @@
-"""
-Set power command.
-"""
 from ..lib.transport.send_plan import single_window_plan
 
-def set_power(on: bool):
-    """Set the LED power state.
-
+def set_power(on: bool = True):
+    """
+    Set the power state of the device.
     Args:
         on: True to turn on, False to turn off.
+    Returns:
+        A SendPlan to set the power state.
     """
-    payload = bytes.fromhex(f"05000701{'01' if on else '00'}")
-    return single_window_plan("set_power", payload, requires_ack=True)
+    if isinstance(on, str):
+        on = on.lower() in ("true", "1", "yes", "on")
+    
+    # Build command
+    cmd = bytes([
+        5,      # Command header
+        0,      # Reserved
+        7,      # sub-command
+        1,      # param
+        1 if on else 0
+    ])
+    return single_window_plan("set_power", cmd)

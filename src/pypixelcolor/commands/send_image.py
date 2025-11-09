@@ -8,9 +8,7 @@ so the transport stays generic.
 from pathlib import Path
 from typing import Union
 from ..lib.bit_tools import CRC32_checksum, get_frame_size
-from ..lib.transport.send_plan import (
-    SendPlan, Window, AckPolicy, single_window_plan
-)
+from ..lib.transport.send_plan import SendPlan, Window, single_window_plan
 
 
 def _hex_len_prefix_for(inner_hex: str) -> bytes:
@@ -101,10 +99,4 @@ def send_image(path_or_hex: Union[str, Path]):
         window_index += 1
         pos = window_end
 
-    return SendPlan(
-        id="send_image",
-        windows=windows,
-        chunk_size=244,
-        window_size=12 * 1024,
-        ack_policy=AckPolicy(ack_per_window=True, ack_final=True),
-    )
+    return SendPlan("send_image", windows)

@@ -10,4 +10,4 @@ def set_pixel(x, y, color):
     """Set the color of a specific pixel."""
     x, y = map(to_int, [x, y])
     payload = bytes.fromhex("0a00050100") + bytes.fromhex(color) + bytes.fromhex(int_to_hex(x) + int_to_hex(y))
-    return single_window_plan("set_pixel", payload, requires_ack=True)
+    return single_window_plan("set_pixel", payload)

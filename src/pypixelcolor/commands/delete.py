@@ -1,15 +1,23 @@
 from ..lib.transport.send_plan import single_window_plan
-from ..lib.convert import to_int, int_to_hex
+
 
 def delete(n: int):
     """
-    Delete a screen from the EEPROM.
-    
+    Delete a specific screen by its index.
     Args:
-        n: The screen index to delete.
-        
+        n: Index of the screen to delete.
     Returns:
-        A SendPlan for deleting the specified screen.
+        A SendPlan to delete the specified screen.
     """
-    payload = bytes.fromhex("070002010100") + bytes.fromhex(int_to_hex(to_int(n, "screen index")))
-    return single_window_plan("delete_screen", payload, requires_ack=True)
+    if not (0 <= int(n) <= 255):
+        raise ValueError("Screen index must be between 0 and 255")
+    cmd = bytes([
+        7,      # Command header
+        0,      # Reserved
+        2,      # sub-command
+        1,      # param
+        1,      # param
+        0,      # param
+        int(n)  # screen index
+    ])
+    return single_window_plan("delete_screen", cmd)
