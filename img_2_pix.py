@@ -56,6 +56,7 @@ def charimg_to_hex_string(img: Image) -> str:
         raise ValueError("The image must be " + str(char_width) + "x" + str(char_height) + " pixels")
 
     hex_string = ""
+    logger.debug("="*char_width + " %i"%char_width)
 
     for y in range(char_height):
         line_value = 0
@@ -70,18 +71,29 @@ def charimg_to_hex_string(img: Image) -> str:
                     line_value_2 |= (1 << (31 - x))
 
         # Merge line_value_2 into line_value for 32-bit value
-        line_value = (line_value_2 << 16) | line_value
+        line_value = (line_value_2) | (line_value << 16) if char_width > 16 else line_value
 
-        # Convert the value to a 4 bytes hex string
-        hex_string += f"{line_value:04X}"
-        
+        # Convert the value to a hex string
         # Print the line value for debugging
-        binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
+        if char_width <= 8:
+            line_value >>= 8
+            hex_string +=  f"{line_value:02X}"
+            binary_str = f"{line_value:0{8}b}".replace('0', '.').replace('1', '#')
+        elif char_width <= 16:
+            hex_string +=  f"{line_value:04X}"
+            binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
+        elif char_width <= 24:
+            line_value >>= 8
+            hex_string +=  f"{line_value:06X}"
+            binary_str = f"{line_value:0{24}b}".replace('0', '.').replace('1', '#')
+        else:
+            hex_string +=  f"{line_value:08X}"
+            binary_str = f"{line_value:0{32}b}".replace('0', '.').replace('1', '#')            
         logger.debug(binary_str)
 
     return hex_string, char_width
 
-def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size=16, font="default") -> tuple[str, int]:
+def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size=16, font="default", minmax_width=(9,16,1)) -> tuple[str, int]:
     """
     Convert a character to its hexadecimal representation with an optional offset.
     Returns: (hex_string, width)
@@ -136,20 +148,26 @@ def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size
             # Clamp text_width between min and max values to prevent crash
             # Values tested on 16px height device
             # Might be different for 20px or 24px devices
-            min_width = 9
-            max_width = 16
+            #min_width, max_width = (9,16)
+            min_width, max_width, step_width = minmax_width
             text_width = max(min_width, min(text_width, max_width))
+            text_width = min([i if i>=text_width else max_width for i in range(min_width, max_width+1, step_width)])
             # print(f"[INFO] Character '{character}' width: {text_width}px")
             
             # Create final image with calculated width
             img = Image.new('1', (text_width, matrix_height), 0)
             d = ImageDraw.Draw(img)
-            d.text(font_offset, character, fill=1, font=font_obj)
+            
+            # center char (d.text(anchor=mm) req pillow 8.0+)
+            H,W = matrix_height/2,text_width/2
+            font_offset = (W+font_offset[0], H+font_offset[1])
+            d.text(font_offset, character, fill=1, anchor="mm", font=font_obj)
 
             img_rgb = img.convert('RGB')
-            img_rgb.save(cache_file)
+            #img_rgb.save(cache_file)
             
             return charimg_to_hex_string(img_rgb)
     except Exception as e:
         logger.error(f"Error occurred while converting character to hex: {e}")
         return None, 0
+        
