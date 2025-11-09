@@ -100,9 +100,7 @@ async def send_plan(client, plan: SendPlan, ack_mgr: AckManager, *, write_uuid: 
             try:
                 await asyncio.wait_for(ack_mgr.all_event.wait(), timeout=ack_timeout)
             except asyncio.TimeoutError:
-                # Some commands might not emit final ack; tolerate by default
-                logger.warning(f"Timeout waiting for final ACK for plan '{plan.id}'")
-                pass
+                raise RuntimeError("cur12k_no_answer: no final ack from device")
         
         # If expecting a response, wait for it
         if plan.response_handler is not None and response_event is not None:
