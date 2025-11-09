@@ -30,12 +30,12 @@ class AsyncClient:
         ...
     
     async def clear(self) -> None:
-        """Clear the EEPROM."""
+        """Clears the EEPROM."""
         ...
     async def delete(self, n: int) -> None:
         """Delete a specific screen by its index."""
         ...
-    async def send_image(self, path_or_hex: Union[str, pathlib._local.Path], device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
+    async def send_image(self, path_or_hex: Union[str, pathlib._local.Path], fit_mode: str = "crop", device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Return a SendPlan for an image (PNG) or animation (GIF)."""
         ...
     async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
@@ -47,14 +47,14 @@ class AsyncClient:
     async def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
         """Set the clock mode of the device."""
         ...
-    async def set_fun_mode(self, value = False) -> None:
-        """Set the DIY Fun Mode (Drawing Mode)."""
+    async def set_fun_mode(self, enable: bool = False) -> None:
+        """Enable or disable fun mode."""
         ...
-    async def set_orientation(self, orientation = 0) -> None:
+    async def set_orientation(self, orientation: int = 0) -> None:
         """Set the orientation of the device."""
         ...
-    async def set_pixel(self, x, y, color) -> None:
-        """Set the color of a specific pixel."""
+    async def set_pixel(self, x: int, y: int, color: str, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
+        """Defines the color of a specific pixel."""
         ...
     async def set_power(self, on: bool = True) -> None:
         """Set the power state of the device."""
@@ -94,12 +94,12 @@ class Client:
         ...
     
     def clear(self) -> None:
-        """Clear the EEPROM."""
+        """Clears the EEPROM."""
         ...
     def delete(self, n: int) -> None:
         """Delete a specific screen by its index."""
         ...
-    def send_image(self, path_or_hex: Union[str, pathlib._local.Path], device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
+    def send_image(self, path_or_hex: Union[str, pathlib._local.Path], fit_mode: str = "crop", device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Return a SendPlan for an image (PNG) or animation (GIF)."""
         ...
     def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
@@ -111,14 +111,14 @@ class Client:
     def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
         """Set the clock mode of the device."""
         ...
-    def set_fun_mode(self, value = False) -> None:
-        """Set the DIY Fun Mode (Drawing Mode)."""
+    def set_fun_mode(self, enable: bool = False) -> None:
+        """Enable or disable fun mode."""
         ...
-    def set_orientation(self, orientation = 0) -> None:
+    def set_orientation(self, orientation: int = 0) -> None:
         """Set the orientation of the device."""
         ...
-    def set_pixel(self, x, y, color) -> None:
-        """Set the color of a specific pixel."""
+    def set_pixel(self, x: int, y: int, color: str, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
+        """Defines the color of a specific pixel."""
         ...
     def set_power(self, on: bool = True) -> None:
         """Set the power state of the device."""
