@@ -1,7 +1,6 @@
 from . import (
     clear,
     delete,
-    get_device_info,
     set_brightness,
     set_clock_mode,
     set_rhythm_mode,
@@ -15,7 +14,6 @@ from . import (
 
 COMMANDS = {
     "clear": clear.clear,
-    "get_device_info": get_device_info.get_device_info,
     "set_brightness": set_brightness.set_brightness,
     "set_clock_mode": set_clock_mode.set_clock_mode,
     "set_rhythm_mode": set_rhythm_mode.set_rhythm_mode,

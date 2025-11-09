@@ -5,10 +5,14 @@ The command encapsulates all protocol-specific framing (headers/tails/length pre
 so the transport stays generic.
 """
 
+import logging
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 from ..lib.bit_tools import CRC32_checksum, get_frame_size
 from ..lib.transport.send_plan import SendPlan, Window, single_window_plan
+from ..lib.device_info import DeviceInfo
+
+logger = logging.getLogger(__name__)
 
 
 def _hex_len_prefix_for(inner_hex: str) -> bytes:
@@ -45,15 +49,23 @@ def _load_from_hex(hex_string: str) -> tuple[bytes, bool]:
     return file_bytes, is_gif
 
 
-def send_image(path_or_hex: Union[str, Path]):
+def send_image(path_or_hex: Union[str, Path], device_info: Optional[DeviceInfo] = None):
     """Return a SendPlan for an image (PNG) or animation (GIF).
     
     Args:
         path_or_hex: Either a file path (str/Path) or hexadecimal string.
+        device_info: Device information (injected automatically by DeviceSession).
         
     Returns:
         A SendPlan for sending the image/animation.
+        
+    Note:
+        If device_info is available, the command will log the target device dimensions
+        for reference. Future versions may add automatic image resizing/validation.
     """
+    if device_info is not None:
+        logger.info(f"Sending image to device with {device_info.width}x{device_info.height} display")
+    
     # Robuste detection: try as Path first, fallback to hex
     try:
         path = Path(path_or_hex)

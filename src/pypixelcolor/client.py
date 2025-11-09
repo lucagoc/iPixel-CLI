@@ -6,11 +6,9 @@ Provides synchronous and asynchronous clients for controlling LED matrix.
 import asyncio
 import logging
 from typing import Optional
-from bleak import BleakClient
 
-from .lib.constants import NOTIFY_UUID
-from .lib.transport.send_plan import send_plan
-from .lib.transport.ack_manager import AckManager
+from .lib.device_session import DeviceSession
+from .lib.device_info import DeviceInfo
 from .commands import COMMANDS
 
 logger = logging.getLogger(__name__)
@@ -28,14 +26,8 @@ def _create_async_method(command_name: str, command_func):
     async def method(self, *args, **kwargs):
         await self._ensure_connected()
         
-        if not self._client or not self._ack_mgr:
-            raise RuntimeError("Client or AckManager not initialized")
-        
-        # Build the SendPlan
-        plan = command_func(*args, **kwargs)
-        
-        # Send the plan and get the result
-        result = await send_plan(self._client, plan, self._ack_mgr)
+        # Execute command through session (handles device_info injection)
+        result = await self._session.execute_command(command_func, *args, **kwargs)
         
         # Log success
         if result.data is None:
@@ -63,28 +55,17 @@ class AsyncClient:
         Args:
             address: Bluetooth device address (e.g., "1D:6B:5E:B5:A5:54")
         """
-        self._address = address
-        self._client: Optional[BleakClient] = None
-        self._ack_mgr: Optional[AckManager] = None
+        self._session = DeviceSession(address)
         self._connected = False
     
     async def connect(self) -> None:
-        """Connect to the BLE device."""
+        """Connect to the BLE device and retrieve device info."""
         if self._connected:
             logger.warning("Already connected")
             return
         
-        self._client = BleakClient(self._address)
-        await self._client.connect()
+        await self._session.connect()
         self._connected = True
-        logger.info(f"Connected to {self._address}")
-        
-        # Enable notify-based ACKs
-        self._ack_mgr = AckManager()
-        try:
-            await self._client.start_notify(NOTIFY_UUID, self._ack_mgr.make_notify_handler())
-        except Exception as e:
-            logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
     
     async def disconnect(self) -> None:
         """Disconnect from the BLE device."""
@@ -92,19 +73,23 @@ class AsyncClient:
             logger.warning("Not connected")
             return
         
-        try:
-            if self._client:
-                await self._client.stop_notify(NOTIFY_UUID)
-        except Exception as e:
-            logger.debug(f"Error stopping notifications: {e}")
-        
-        if self._client:
-            await self._client.disconnect()
-        
+        await self._session.disconnect()
         self._connected = False
-        self._client = None
-        self._ack_mgr = None
-        logger.info("Disconnected")
+    
+    def get_device_info(self) -> DeviceInfo:
+        """
+        Get cached device information.
+        
+        Device info is automatically retrieved during connect().
+        This is a simple getter for the cached data.
+        
+        Returns:
+            DeviceInfo object with device specifications.
+            
+        Raises:
+            RuntimeError: If not connected.
+        """
+        return self._session.get_device_info()
     
     async def _ensure_connected(self) -> None:
         """Ensure the client is connected."""
@@ -195,7 +180,8 @@ class Client:
                 self.disconnect()
         except Exception:
             pass
-        self._cleanup_loop()
+        finally:
+            self._cleanup_loop()
     
     def __enter__(self):
         """Context manager entry."""

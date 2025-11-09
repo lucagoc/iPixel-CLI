@@ -1,4 +1,3 @@
-
 def print_character_from_hex(hex_string: str):
     """Print a character representation of a hexadecimal string."""
     # 9*16 pixels grid, 1 is for ON, 0 is for OFF

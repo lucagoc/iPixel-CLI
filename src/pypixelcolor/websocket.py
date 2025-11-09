@@ -8,12 +8,9 @@ import logging
 import argparse
 import asyncio
 import websockets
-from bleak import BleakClient
 
-from .lib.constants import NOTIFY_UUID
 from .lib.logging import setup_logging
-from .lib.transport.send_plan import send_plan
-from .lib.transport.ack_manager import AckManager
+from .lib.device_session import DeviceSession
 from .commands import COMMANDS
 
 logger = logging.getLogger(__name__)
@@ -33,16 +30,12 @@ def build_command_args(params):
 
 async def handle_websocket(websocket, address):
     """Handle WebSocket connections and execute BLE commands."""
-    async with BleakClient(address) as client:
-        logger.info("Connected to the device")
+    async with DeviceSession(address) as session:
+        # Device info is automatically retrieved on connection
+        device_info = session.get_device_info()
+        logger.info(f"Device connected: {device_info.width}x{device_info.height} (Type {device_info.led_type})")
+        
         try:
-            # Enable notify-based ACKs for flow control
-            ack_mgr = AckManager()
-            try:
-                await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
-            except Exception as e:
-                logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
-            
             while True:
                 # Wait for a message from the client
                 message = await websocket.recv()
@@ -53,13 +46,29 @@ async def handle_websocket(websocket, address):
                     command_name = command_data.get("command")
                     params = command_data.get("params", [])
 
-                    if command_name in COMMANDS:
+                    if command_name == "get_device_info":
+                        # Special case: get_device_info is now just a getter
+                        response = {
+                            "status": "success",
+                            "command": command_name,
+                            "data": {
+                                "device_type": device_info.device_type,
+                                "mcu_version": device_info.mcu_version,
+                                "wifi_version": device_info.wifi_version,
+                                "width": device_info.width,
+                                "height": device_info.height,
+                                "has_wifi": device_info.has_wifi,
+                                "password_flag": device_info.password_flag,
+                                "led_type": device_info.led_type,
+                            }
+                        }
+                    elif command_name in COMMANDS:
                         # Separate positional and keyword arguments
                         positional_args, keyword_args = build_command_args(params)
 
                         # Build the SendPlan and execute it
-                        plan = COMMANDS[command_name](*positional_args, **keyword_args)
-                        result = await send_plan(client, plan, ack_mgr)
+                        command_func = COMMANDS[command_name]
+                        result = await session.execute_command(command_func, *positional_args, **keyword_args)
 
                         # Prepare the response
                         response = {"status": "success", "command": command_name}
@@ -89,11 +98,6 @@ async def handle_websocket(websocket, address):
                 await websocket.send(json.dumps(response))
         except websockets.ConnectionClosed:
             logger.info("Websocket connection has been closed")
-        finally:
-            try:
-                await client.stop_notify(NOTIFY_UUID)
-            except Exception:
-                pass
 
 
 async def start_server(ip, port, address):

@@ -6,12 +6,10 @@ Command-line interface for iPixel BLE commands
 import asyncio
 import argparse
 import logging
-from bleak import BleakClient, BleakScanner
+from bleak import BleakScanner
 
-from .lib.constants import NOTIFY_UUID
 from .lib.logging import setup_logging
-from .lib.transport.send_plan import send_plan
-from .lib.transport.ack_manager import AckManager
+from .lib.device_session import DeviceSession
 from .websocket import build_command_args
 from .commands import COMMANDS
 
@@ -26,22 +24,22 @@ async def run_commands(commands: list[tuple[str, ...]], address: str) -> None:
         commands: List of command tuples (command_name, *params).
         address: Bluetooth device address.
     """
-    async with BleakClient(address) as client:
-        logger.info("Connected to the device")
-        # Enable notify-based ACKs
-        ack_mgr = AckManager()
-        try:
-            await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
-        except Exception as e:
-            logger.warning(f"Failed to enable notifications on {NOTIFY_UUID}: {e}")
+    async with DeviceSession(address) as session:
+        # Device info is automatically retrieved on connection
+        device_info = session.get_device_info()
+        logger.info(f"Device: {device_info.width}x{device_info.height} (Type {device_info.led_type})")
+        
         for cmd in commands:
             command_name = cmd[0]
             params = cmd[1:]
             
-            if command_name in COMMANDS:
+            if command_name == "get_device_info":
+                # Special case: get_device_info is now just a getter
+                logger.info(str(device_info))
+            elif command_name in COMMANDS:
                 positional_args, keyword_args = build_command_args(params)
-                plan = COMMANDS[command_name](*positional_args, **keyword_args)
-                result = await send_plan(client, plan, ack_mgr)
+                command_func = COMMANDS[command_name]
+                result = await session.execute_command(command_func, *positional_args, **keyword_args)
                 
                 # Display result if it has data
                 if result.data is not None:
@@ -50,10 +48,6 @@ async def run_commands(commands: list[tuple[str, ...]], address: str) -> None:
                     logger.info(f"Command '{command_name}' executed successfully.")
             else:
                 logger.error(f"Unknown command: {command_name}")
-        try:
-            await client.stop_notify(NOTIFY_UUID)
-        except Exception:
-            pass
 
 async def scan_devices() -> None:
     """Scan for Bluetooth devices with 'LED' in their name."""

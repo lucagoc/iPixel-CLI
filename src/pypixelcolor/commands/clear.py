@@ -8,4 +8,4 @@ def clear():
         3,     # sub-command
         0x80,  # -128
     ])
-    return single_window_plan("clear", cmd)
+    return single_window_plan("clear", cmd, requires_ack=False)

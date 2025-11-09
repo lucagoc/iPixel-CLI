@@ -228,11 +228,19 @@ class AsyncClient:
     def __init__(self, address: str) -> None: ...
     
     async def connect(self) -> None:
-        """Connect to the BLE device."""
+        """Connect to the BLE device and retrieve device info."""
         ...
     
     async def disconnect(self) -> None:
         """Disconnect from the BLE device."""
+        ...
+    
+    def get_device_info(self) -> DeviceInfo:
+        """Get cached device information.
+        
+        Device info is automatically retrieved during connect().
+        This is a simple getter for the cached data.
+        """
         ...
     
 '''
@@ -257,11 +265,19 @@ class AsyncClient:
     def __init__(self, address: str) -> None: ...
     
     def connect(self) -> None:
-        """Connect to the BLE device."""
+        """Connect to the BLE device and retrieve device info."""
         ...
     
     def disconnect(self) -> None:
         """Disconnect from the BLE device."""
+        ...
+    
+    def get_device_info(self) -> DeviceInfo:
+        """Get cached device information.
+        
+        Device info is automatically retrieved during connect().
+        This is a simple getter for the cached data.
+        """
         ...
     
 '''

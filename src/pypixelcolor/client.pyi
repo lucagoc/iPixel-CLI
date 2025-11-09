@@ -14,29 +14,34 @@ class AsyncClient:
     def __init__(self, address: str) -> None: ...
     
     async def connect(self) -> None:
-        """Connect to the BLE device."""
+        """Connect to the BLE device and retrieve device info."""
         ...
     
     async def disconnect(self) -> None:
         """Disconnect from the BLE device."""
         ...
     
+    def get_device_info(self) -> DeviceInfo:
+        """Get cached device information.
+        
+        Device info is automatically retrieved during connect().
+        This is a simple getter for the cached data.
+        """
+        ...
+    
     async def clear(self) -> None:
         """Clear the EEPROM."""
         ...
     async def delete(self, n: int) -> None:
-        """Delete a screen from the EEPROM."""
+        """Delete a specific screen by its index."""
         ...
-    async def get_device_info(self) -> DeviceInfo:
-        """Return a SendPlan for requesting device information."""
-        ...
-    async def send_image(self, path_or_hex: Union[str, pathlib._local.Path]) -> None:
+    async def send_image(self, path_or_hex: Union[str, pathlib._local.Path], device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Return a SendPlan for an image (PNG) or animation (GIF)."""
         ...
-    async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: int = 16) -> None:
+    async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send a text to the device with configurable parameters."""
         ...
-    async def set_brightness(self, value) -> None:
+    async def set_brightness(self, level: int) -> None:
         """Return a SendPlan to set the brightness."""
         ...
     async def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
@@ -51,8 +56,8 @@ class AsyncClient:
     async def set_pixel(self, x, y, color) -> None:
         """Set the color of a specific pixel."""
         ...
-    async def set_power(self, on: bool) -> None:
-        """Set the LED power state."""
+    async def set_power(self, on: bool = True) -> None:
+        """Set the power state of the device."""
         ...
     async def set_rhythm_mode(self, style = 0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0") -> None:
         """Set the rhythm mode of the device."""
@@ -73,29 +78,34 @@ class Client:
     def __init__(self, address: str) -> None: ...
     
     def connect(self) -> None:
-        """Connect to the BLE device."""
+        """Connect to the BLE device and retrieve device info."""
         ...
     
     def disconnect(self) -> None:
         """Disconnect from the BLE device."""
         ...
     
+    def get_device_info(self) -> DeviceInfo:
+        """Get cached device information.
+        
+        Device info is automatically retrieved during connect().
+        This is a simple getter for the cached data.
+        """
+        ...
+    
     def clear(self) -> None:
         """Clear the EEPROM."""
         ...
     def delete(self, n: int) -> None:
-        """Delete a screen from the EEPROM."""
+        """Delete a specific screen by its index."""
         ...
-    def get_device_info(self) -> DeviceInfo:
-        """Return a SendPlan for requesting device information."""
-        ...
-    def send_image(self, path_or_hex: Union[str, pathlib._local.Path]) -> None:
+    def send_image(self, path_or_hex: Union[str, pathlib._local.Path], device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Return a SendPlan for an image (PNG) or animation (GIF)."""
         ...
-    def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: int = 16) -> None:
+    def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send a text to the device with configurable parameters."""
         ...
-    def set_brightness(self, value) -> None:
+    def set_brightness(self, level: int) -> None:
         """Return a SendPlan to set the brightness."""
         ...
     def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
@@ -110,8 +120,8 @@ class Client:
     def set_pixel(self, x, y, color) -> None:
         """Set the color of a specific pixel."""
         ...
-    def set_power(self, on: bool) -> None:
-        """Set the LED power state."""
+    def set_power(self, on: bool = True) -> None:
+        """Set the power state of the device."""
         ...
     def set_rhythm_mode(self, style = 0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0") -> None:
         """Set the rhythm mode of the device."""

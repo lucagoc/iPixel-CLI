@@ -2,12 +2,14 @@
 
 # Imports
 from logging import getLogger
+from typing import Optional
 
 # Locals
 from ..lib.encode_text import encode_text
 from ..lib.bit_tools import switch_endian, CRC32_checksum
 from ..lib.convert import to_int, int_to_hex, validate_range
 from ..lib.transport.send_plan import single_window_plan
+from ..lib.device_info import DeviceInfo
 
 logger = getLogger("ipixel-cli.commands.send_text")
 
@@ -21,7 +23,8 @@ def send_text(text: str,
               font_offset_x: int = 0, 
               font_offset_y: int = 0, 
               font_size: int = 0, 
-              matrix_height: int = 16
+              matrix_height: Optional[int] = None,
+              device_info: Optional[DeviceInfo] = None
               ):
     """
     Send a text to the device with configurable parameters.
@@ -37,7 +40,8 @@ def send_text(text: str,
         font_offset_x (int, optional): Font X offset. Defaults to 0.
         font_offset_y (int, optional): Font Y offset. Defaults to 0.
         font_size (int, optional): Font size. Defaults to 0 (auto).
-        matrix_height (int, optional): Matrix height. Defaults to 16.
+        matrix_height (int, optional): Matrix height. Auto-detected from device_info if not specified.
+        device_info (DeviceInfo, optional): Device information (injected automatically by DeviceSession).
 
     Returns:
         bytes: Encoded command to send to the device.
@@ -45,6 +49,15 @@ def send_text(text: str,
     Raises:
         ValueError: If an invalid animation is selected or parameters are out of range.
     """
+    
+    # Auto-detect matrix_height from device_info if available
+    if matrix_height is None:
+        if device_info is not None:
+            matrix_height = device_info.height
+            logger.debug(f"Auto-detected matrix height from device: {matrix_height}")
+        else:
+            matrix_height = 16  # Default fallback
+            logger.warning("Using default matrix height: 16")
     
     rainbow_mode = to_int(rainbow_mode, "rainbow mode")
     animation = to_int(animation, "animation")
