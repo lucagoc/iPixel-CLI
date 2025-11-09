@@ -44,4 +44,4 @@ def set_time(hour: Optional[int] = None, minute: Optional[int] = None, second: O
         int(second),
         0
     ])
-    return single_window_plan("set_time", cmd, requires_ack=False)
+    return single_window_plan("set_time", cmd)

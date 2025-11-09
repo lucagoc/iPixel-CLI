@@ -66,10 +66,17 @@ async def send_plan(client, plan: SendPlan, ack_mgr: AckManager, *, write_uuid: 
     # If this command expects a response, set up response capture
     response_data = None
     response_event = None
-    original_handler = None
+    needs_ack_restore = False
     
     if plan.response_handler is not None:
         response_event = asyncio.Event()
+        needs_ack_restore = True
+        
+        # Stop the ack_mgr handler temporarily
+        try:
+            await client.stop_notify(NOTIFY_UUID)
+        except Exception as e:
+            logger.debug(f"No existing notification to stop: {e}")
         
         def response_capture_handler(_, data: bytes):
             nonlocal response_data
@@ -120,9 +127,16 @@ async def send_plan(client, plan: SendPlan, ack_mgr: AckManager, *, write_uuid: 
         return CommandResult(success=True)
         
     finally:
-        # Clean up response notifications if they were set up
-        if plan.response_handler is not None:
+        # Restore ack_mgr notifications if we temporarily replaced them
+        if needs_ack_restore:
             try:
                 await client.stop_notify(NOTIFY_UUID)
             except Exception as e:
                 logger.debug(f"Failed to stop response notifications: {e}")
+            
+            # Re-enable ack_mgr notifications
+            try:
+                await client.start_notify(NOTIFY_UUID, ack_mgr.make_notify_handler())
+                logger.debug("Restored ack_mgr notification handler")
+            except Exception as e:
+                logger.warning(f"Failed to restore ack_mgr notifications: {e}")

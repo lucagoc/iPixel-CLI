@@ -48,4 +48,4 @@ def set_clock_mode(style=1, date="", show_date=True, format_24=True):
     date_bytes = bytes.fromhex(int_to_hex(year) + int_to_hex(month) + int_to_hex(day) + int_to_hex(day_of_week))
 
     payload = header + params + date_bytes
-    return single_window_plan("set_clock_mode", payload, requires_ack=False)
+    return single_window_plan("set_clock_mode", payload)

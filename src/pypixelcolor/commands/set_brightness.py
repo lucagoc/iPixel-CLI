@@ -14,4 +14,4 @@ def set_brightness(level: int):
         0x80,   # param
         int(level)   # brightness value
     ])
-    return single_window_plan("set_brightness", payload, requires_ack=False)
+    return single_window_plan("set_brightness", payload)
