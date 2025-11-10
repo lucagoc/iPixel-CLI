@@ -14,10 +14,10 @@ def set_fun_mode(enable : bool = False):
         enable = enable.lower() in ("true", "1", "yes", "on")
     
     payload = bytes([
-        5,                        # Command ID for set_fun_mode
-        0,                        # Subcommand ID
-        4,                        # Reserved
-        1,                        # Reserved
+        5,                        # Command length
+        0,                        # Reserved
+        4,                        # Command ID
+        1,                        # Command type ID
         1 if bool(enable) else 0  # Fun mode value
     ])
     return single_window_plan("set_fun_mode", payload)
@@ -40,10 +40,10 @@ def set_pixel(x: int, y: int, color: str, device_info: Optional[DeviceInfo] = No
     if not (isinstance(color, str) and len(color) == 6 and all(c in '0123456789abcdefABCDEF' for c in color)):
         raise ValueError("Color must be a 6-character hexadecimal string.")
     payload = bytes([
-        10,                       # Command ID for set_pixel
-        0,                        # Subcommand ID
-        5,                        # Reserved
-        1,                        # Reserved
+        10,                       # Command length
+        0,                        # Reserved
+        5,                        # Command ID
+        1,                        # Command type ID
         0,                        # Reserved
         int(color[0:2], 16),      # Red
         int(color[2:4], 16),      # Green

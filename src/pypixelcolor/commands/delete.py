@@ -12,12 +12,12 @@ def delete(n: int):
     if not (0 <= int(n) <= 255):
         raise ValueError("Screen index must be between 0 and 255")
     cmd = bytes([
-        7,      # Command header
+        7,      # Command length
         0,      # Reserved
-        2,      # sub-command
-        1,      # param
-        1,      # param
-        0,      # param
-        int(n)  # screen index
+        2,      # Command ID
+        1,      # Command type ID
+        1,      # Reserved
+        0,      # Reserved
+        int(n)  # Screen index
     ])
     return single_window_plan("delete_screen", cmd)

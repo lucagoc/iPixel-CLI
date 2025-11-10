@@ -5,9 +5,9 @@ def clear():
     Clears the EEPROM.
     """
     cmd = bytes([
-        4,     # Command header
+        4,     # Command length
         0,     # Reserved
-        3,     # sub-command
-        0x80,  # -128
+        3,     # Command ID
+        0x80,  # Command type ID
     ])
     return single_window_plan("clear", cmd)

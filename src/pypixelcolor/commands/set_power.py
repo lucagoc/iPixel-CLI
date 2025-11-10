@@ -13,10 +13,10 @@ def set_power(on: bool = True):
     
     # Build command
     cmd = bytes([
-        5,      # Command header
-        0,      # Reserved
-        7,      # sub-command
-        1,      # param
-        1 if on else 0
+        5,              # Command length
+        0,              # Reserved
+        7,              # Command ID
+        1,              # Command type ID
+        1 if on else 0  # Power state
     ])
     return single_window_plan("set_power", cmd)

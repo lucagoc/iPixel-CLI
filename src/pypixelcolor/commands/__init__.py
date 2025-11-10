@@ -27,3 +27,16 @@ COMMANDS = {
     "send_image": send_image.send_image,
     "set_power": set_power.set_power,
 }
+
+# 0x80  -> ?
+# 1     -> ?
+COMMANDS_ID = {
+    (1, 0x80): set_time.set_time,
+    (3, 0x80): clear.clear,
+    (4, 0x80): set_brightness.set_brightness,
+    (6, 0x80): set_orientation.set_orientation,
+    (2, 1): delete.delete,
+    (5, 1): set_fun_mode.set_fun_mode,
+    (6, 1): set_clock_mode.set_clock_mode,
+    (7, 1): set_power.set_power
+}

@@ -35,13 +35,13 @@ def set_time(hour: Optional[int] = None, minute: Optional[int] = None, second: O
     
     # Build command
     cmd = bytes([
-        8,      # Command header
-        0,      # Reserved
-        1,      # sub-command
-        0x80,   # -128
-        int(hour),
-        int(minute),
-        int(second),
-        0
+        8,              # Command length
+        0,              # Reserved
+        1,              # Command ID
+        0x80,           # Command type ID
+        int(hour),      # Hour
+        int(minute),    # Minute
+        int(second),    # Second
+        0               # Reserved
     ])
     return single_window_plan("set_time", cmd)

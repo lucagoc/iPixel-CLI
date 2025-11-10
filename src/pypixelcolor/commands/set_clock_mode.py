@@ -3,7 +3,7 @@ from datetime import datetime
 
 # Locals
 from ..lib.transport.send_plan import single_window_plan
-from ..lib.convert import to_int, to_bool, validate_range, int_to_hex
+from ..lib.convert import to_int, to_bool, validate_range
 
 # Commands
 def set_clock_mode(style=1, date="", show_date=True, format_24=True):
@@ -42,10 +42,26 @@ def set_clock_mode(style=1, date="", show_date=True, format_24=True):
     validate_range(day, 1, 31, "Day")
     validate_range(year, 0, 99, "Year")
 
-    # Build byte sequence
-    header = bytes.fromhex("0b000601")
-    params = bytes.fromhex(int_to_hex(style) + ("01" if format_24 else "00") + ("01" if show_date else "00"))
-    date_bytes = bytes.fromhex(int_to_hex(year) + int_to_hex(month) + int_to_hex(day) + int_to_hex(day_of_week))
+    # Build byte sequence using direct bytes constructions
+    header = bytes([
+        11, # Command length 
+        0,  # Reserved
+        6,  # Command ID
+        1   # Command type ID
+    ])
+
+    params = bytes([
+        style & 0xFF,                   # Clock style
+        0x01 if format_24 else 0x00,    # 24-hour format
+        0x01 if show_date else 0x00,    # Show date
+    ])
+
+    date_bytes = bytes([
+        year & 0xFF,                   # Year
+        month & 0xFF,                  # Month
+        day & 0xFF,                    # Day
+        day_of_week & 0xFF,            # Day of week
+    ])
 
     payload = header + params + date_bytes
     return single_window_plan("set_clock_mode", payload)

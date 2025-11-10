@@ -1,7 +1,3 @@
-"""
-
-"""
-
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.convert import to_int, validate_range, int_to_hex
 
