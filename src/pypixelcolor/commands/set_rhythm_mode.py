@@ -1,58 +1,80 @@
 from ..lib.transport.send_plan import single_window_plan
-from ..lib.convert import to_int, validate_range, int_to_hex
 
-def set_rhythm_mode(style=0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0"):
+def set_rhythm_mode(style=0, l1 : int = 0, l2 : int = 0, l3 : int = 0, l4 : int = 0, l5 : int = 0, l6 : int = 0, l7 : int = 0, l8 : int = 0, l9 : int = 0, l10 : int = 0, l11 : int = 0):
+    """Set the rhythm mode of the device.
+
+    Args:
+        style (int): The style of the rhythm mode (0-4).
+        l1 (int): Level 1 (0-15).
+        l2 (int): Level 2 (0-15).
+        l3 (int): Level 3 (0-15).
+        l4 (int): Level 4 (0-15).
+        l5 (int): Level 5 (0-15).
+        l6 (int): Level 6 (0-15).
+        l7 (int): Level 7 (0-15).
+        l8 (int): Level 8 (0-15).
+        l9 (int): Level 9 (0-15).
+        l10 (int): Level 10 (0-15).
+        l11 (int): Level 11 (0-15).
+
+    Returns:
+        bytes: Byte sequence for the command payload used to set the rhythm mode.
+
+    Raises:
+        ValueError: If ``style`` is not in 0..4 or any level is not in 0..15.
     """
-    Set the rhythm mode of the device.
-    :param style: The style of the rhythm mode (0-4).
-    :param l1: Level 1 (0-15).
-    :param l2: Level 2 (0-15).
-    :param l3: Level 3 (0-15).
-    :param l4: Level 4 (0-15).
-    :param l5: Level 5 (0-15).
-    :param l6: Level 6 (0-15).
-    :param l7: Level 7 (0-15).
-    :param l8: Level 8 (0-15).
-    :param l9: Level 9 (0-15).
-    :param l10: Level 10 (0-15).
-    :param l11: Level 11 (0-15).
-    :return: Byte sequence to set the rhythm mode.
-    """
-    
-    header = bytes.fromhex("10000102")
-    
-    # Convert style to integer and validate range
-    style = to_int(style, "style")
-    validate_range(style, 0, 4, "rhythm mode style")
 
-    # Convert levels to integers and validate ranges
-    for l in [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11]:
-        l = to_int(l, "level")
-        if not (0 <= l <= 15):
-            raise ValueError(f"Level must be between 0 and 15, got {l}")
-    
-    # Convert levels to hexadecimal and concatenates
-    data = "".join(
-        int_to_hex(to_int(l)) for l in [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11]
-    )
+    # Validation
+    if not (0 <= int(style) <= 4):
+        raise ValueError(f"rhythm mode style must be between 0 and 4, got {style}")
 
-    payload = header + bytes.fromhex(int_to_hex(style)) + bytes.fromhex(data)
+    levels = [int(v) for v in [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11]]
+    for idx, lv in enumerate(levels, start=1):
+        if not (0 <= lv <= 15):
+            raise ValueError(f"level {idx} must be between 0 and 15, got {lv}")
+
+    # Build payload
+    payload = bytes([
+        16,     # Command length
+        0,      # Reserved
+        1,      # Command ID
+        2,      # Command type ID
+        int(style),
+    ])
+    payload += bytes(levels)
+    
     return single_window_plan("set_rhythm_mode", payload, requires_ack=True)
 
 
-def set_rhythm_mode_2(style=0, t=0):
-    """
-    Set the rhythm mode of the device (alternative version).
-    :param style: The style of the rhythm mode (0-4).
-    :param t: Animation time (0-7).
-    :return: Byte sequence to set the rhythm mode.
+def set_rhythm_mode_2(style: int = 0, t: int = 0):
+    """Set the rhythm mode of the device (alternative version).
+
+    Args:
+        style (int): The style of the rhythm mode. Allowed values are 0 or 1.
+        t (int): Animation time (0-7).
+
+    Returns:
+        bytes: Byte sequence for the command payload used to set the rhythm mode.
+
+    Raises:
+        ValueError: If ``style`` is not in 0..1 or ``t`` is not in 0..7.
     """
     
-    header = bytes.fromhex("06000002")
-    style = to_int(style, "style")
-    validate_range(style, 0, 1, "rhythm mode style")
-    t = to_int(t, "level")
-    validate_range(t, 0, 7, "Level")
+    # Validation
+    if not (0 <= int(style) <= 1):
+        raise ValueError(f"rhythm mode style must be between 0 and 1, got {style}")
     
-    payload = header + bytes([t]) + bytes.fromhex(int_to_hex(style))
+    if not (0 <= int(t) <= 7):
+        raise ValueError(f"Level (t) must be between 0 and 7, got {t}")
+
+    # Build payload using bytes
+    payload = bytes([
+        6,              # Command length
+        0,              # Reserved
+        0,              # Command ID
+        2,              # Command type ID
+        int(t),         # Animation time
+        int(style)      # Style
+    ])
+    
     return single_window_plan("set_rhythm_mode_2", payload)

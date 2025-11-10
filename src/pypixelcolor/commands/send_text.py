@@ -6,7 +6,7 @@ from typing import Optional
 import binascii
 
 # Locals
-from ..lib.convert import to_int, validate_range
+from ..lib.convert import validate_range
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.device_info import DeviceInfo
 from ..lib.img_2_pix import char_to_hex
@@ -149,14 +149,14 @@ def send_text(text: str,
             matrix_height = 16  # Default fallback
             logger.warning("Using default matrix height: 16")
     
-    rainbow_mode = to_int(rainbow_mode, "rainbow mode")
-    animation = to_int(animation, "animation")
-    save_slot = to_int(save_slot, "save slot")
-    speed = to_int(speed, "speed")
-    font_offset_x = to_int(font_offset_x, "font offset x")
-    font_offset_y = to_int(font_offset_y, "font offset y")
-    font_size = to_int(font_size, "font size")
-    matrix_height = to_int(matrix_height, "matrix height")
+    rainbow_mode = int(rainbow_mode)
+    animation = int(animation)
+    save_slot = int(save_slot)
+    speed = int(speed)
+    font_offset_x = int(font_offset_x)
+    font_offset_y = int(font_offset_y)
+    font_size = int(font_size)
+    matrix_height = int(matrix_height)
     
     for param, min_val, max_val, name in [
         (rainbow_mode, 0, 9, "Rainbow mode"),

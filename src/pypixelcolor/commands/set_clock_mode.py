@@ -3,10 +3,10 @@ from datetime import datetime
 
 # Locals
 from ..lib.transport.send_plan import single_window_plan
-from ..lib.convert import to_int, to_bool, validate_range
+from ..lib.convert import validate_range
 
 # Commands
-def set_clock_mode(style=1, date="", show_date=True, format_24=True):
+def set_clock_mode(style: int = 1, date="", show_date: bool = True, format_24: bool = True):
     """
     Set the clock mode of the device.
 
@@ -19,9 +19,10 @@ def set_clock_mode(style=1, date="", show_date=True, format_24=True):
     Returns:
         bytes: Encoded command to send to the device.
     """
-    style = to_int(style, "style")
-    show_date = to_bool(show_date)
-    format_24 = to_bool(format_24)
+    if isinstance(show_date, str):
+        show_date = show_date.lower() in ("true", "1", "yes", "on")
+    if isinstance(format_24, str):
+        format_24 = format_24.lower() in ("true", "1", "yes", "on")
 
     # Process date
     if not date:
@@ -51,9 +52,9 @@ def set_clock_mode(style=1, date="", show_date=True, format_24=True):
     ])
 
     params = bytes([
-        style & 0xFF,                   # Clock style
-        0x01 if format_24 else 0x00,    # 24-hour format
-        0x01 if show_date else 0x00,    # Show date
+        int(style) & 0xFF,                      # Clock style
+        0x01 if bool(format_24) else 0x00,      # 24-hour format
+        0x01 if bool(show_date) else 0x00,      # Show date
     ])
 
     date_bytes = bytes([

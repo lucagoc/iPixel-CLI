@@ -35,8 +35,13 @@ COMMANDS_ID = {
     (3, 0x80): clear.clear,
     (4, 0x80): set_brightness.set_brightness,
     (6, 0x80): set_orientation.set_orientation,
+    # ---
     (2, 1): delete.delete,
-    (5, 1): set_fun_mode.set_fun_mode,
+    (4, 1): set_fun_mode.set_fun_mode,
+    (5, 1): set_fun_mode.set_pixel,
     (6, 1): set_clock_mode.set_clock_mode,
-    (7, 1): set_power.set_power
+    (7, 1): set_power.set_power,
+    # ---
+    (0, 2): set_rhythm_mode.set_rhythm_mode_2,
+    (1, 2): set_rhythm_mode.set_rhythm_mode,
 }
