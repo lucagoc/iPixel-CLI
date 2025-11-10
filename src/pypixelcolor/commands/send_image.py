@@ -1,21 +1,41 @@
 import logging
+import binascii
 from pathlib import Path
 from typing import Union, Optional
 from PIL import Image
 from PIL.Image import Palette
 from io import BytesIO
-from ..lib.bit_tools import CRC32_checksum, get_frame_size
 from ..lib.transport.send_plan import SendPlan, Window, single_window_plan
 from ..lib.device_info import DeviceInfo
 
 logger = logging.getLogger(__name__)
 
+# Helper functions for byte-level transformations
+def _frame_size_bytes(length: int, size_hex_digits: int) -> bytes:
+    """Return the length encoded as little-endian bytes.
 
-def _hex_len_prefix_for(inner_hex: str) -> bytes:
-    # Match legacy length prefix behavior
-    return bytes.fromhex(get_frame_size("FFFF" + inner_hex, 4))
+    length: number of raw bytes
+    size_hex_digits: number of hex digits used historically (e.g. 4 or 8). We convert to bytes = size_hex_digits//2
+    """
+    byte_count = size_hex_digits // 2
+    return int(length).to_bytes(byte_count, byteorder="little")
 
 
+def _crc32_le(data: bytes) -> bytes:
+    """Return CRC32 as 4 bytes little-endian for the given raw bytes."""
+    calculated_crc = binascii.crc32(data) & 0xFFFFFFFF
+    return calculated_crc.to_bytes(4, byteorder="little")
+
+
+def _len_prefix_for(inner: bytes) -> bytes:
+    """Return 2-byte little-endian prefix matching legacy behavior for ('FFFF' + inner_hex).
+
+    That legacy length was computed over 2 extra bytes (0xFF,0xFF) plus the inner payload.
+    So prefix = (2 + len(inner)).to_bytes(2, 'little')
+    """
+    return int(2 + len(inner)).to_bytes(2, byteorder="little")
+
+# Helper functions for image loading and resizing
 def _load_from_file(path: Path) -> tuple[bytes, bool]:
     """Load image data from file path.
     
@@ -257,7 +277,7 @@ def _load_from_hex(hex_string: str) -> tuple[bytes, bool]:
     is_gif = hex_string.upper().startswith("474946")  # 'GIF' magic number
     return file_bytes, is_gif
 
-
+# Main function to send image
 def send_image(path_or_hex: Union[str, Path], fit_mode: str = 'crop', device_info: Optional[DeviceInfo] = None):
     """
     Send an image or animation.
@@ -300,19 +320,20 @@ def send_image(path_or_hex: Union[str, Path], fit_mode: str = 'crop', device_inf
             # If it's a hex string, skip resizing
             pass
 
-    image_hex = file_bytes.hex()
-    checksum = CRC32_checksum(image_hex)  # endian-switched hex
-    size_hex = get_frame_size(image_hex, 8)  # endian-switched hex len
+    # Prepare size and CRC in little-endian bytes
+    size_bytes_4 = _frame_size_bytes(len(file_bytes), 8)  # 4 bytes little-endian
+    checksum_bytes = _crc32_le(file_bytes)  # 4 bytes little-endian
 
     if not is_gif:
-        # PNG: single window frame identical to legacy
-        inner_hex = f"020000{size_hex}{checksum}0065{image_hex}"
-        data = bytes.fromhex(get_frame_size("FFFF" + inner_hex, 4) + inner_hex)
+        # PNG: single window frame assembled in bytes
+        inner = bytes([0x02, 0x00, 0x00]) + size_bytes_4 + checksum_bytes + bytes([0x00, 0x65]) + file_bytes
+        prefix = _len_prefix_for(inner)
+        data = prefix + inner
         return single_window_plan("send_image", data, requires_ack=True)
 
     # GIF: multi-window. Build per-window frames like legacy send_gif_windowed.
-    size_bytes = bytes.fromhex(size_hex)
-    crc_bytes = bytes.fromhex(checksum)
+    size_bytes = size_bytes_4
+    crc_bytes = checksum_bytes
     gif = file_bytes  # raw GIF data
 
     window_size = 12 * 1024
@@ -327,7 +348,7 @@ def send_image(path_or_hex: Union[str, Path], fit_mode: str = 'crop', device_inf
         cur_tail = bytes([0x02, serial])
         header = bytes([0x03, 0x00, option]) + size_bytes + crc_bytes + cur_tail
         frame = header + chunk_payload
-        prefix = _hex_len_prefix_for(frame.hex())
+        prefix = _len_prefix_for(frame)
         message = prefix + frame
         windows.append(Window(data=message, requires_ack=True))
         window_index += 1

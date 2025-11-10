@@ -10,10 +10,43 @@ from ..lib.convert import to_int, validate_range
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.device_info import DeviceInfo
 from ..lib.img_2_pix import char_to_hex
-from ..lib.bit_tools import switch_endian, invert_frames, logic_reverse_bits_order
 
 logger = getLogger("ipixel-cli.commands.send_text")
 
+# Helper functions for byte-level transformations
+def _reverse_bits_16(n: int) -> int:
+    """Reverse bits in a 16-bit integer."""
+    n = ((n & 0xFF00) >> 8) | ((n & 0x00FF) << 8)
+    n = ((n & 0xF0F0) >> 4) | ((n & 0x0F0F) << 4)
+    n = ((n & 0xCCCC) >> 2) | ((n & 0x3333) << 2)
+    n = ((n & 0xAAAA) >> 1) | ((n & 0x5555) << 1)
+    return n
+
+def _invert_frames_bytes(data: bytes) -> bytes:
+    """Invert frames by 2-byte chunks (equivalent to previous invert_frames on hex string)."""
+    if len(data) % 2 != 0:
+        raise ValueError("Data length must be multiple of 2 bytes for frame inversion")
+    chunks = [data[i:i+2] for i in range(0, len(data), 2)]
+    chunks.reverse()
+    return b"".join(chunks)
+
+def _switch_endian_bytes(data: bytes) -> bytes:
+    """Reverse the byte order of the data (equivalent to previous switch_endian on hex)."""
+    return data[::-1]
+
+def _logic_reverse_bits_order_bytes(data: bytes) -> bytes:
+    """Reverse bit order in each 16-bit chunk."""
+    if len(data) % 2 != 0:
+        raise ValueError("Data length must be multiple of 2 bytes for bit reversal")
+    out = bytearray()
+    for i in range(0, len(data), 2):
+        chunk = data[i:i+2]
+        value = int.from_bytes(chunk, byteorder="big")
+        rev = _reverse_bits_16(value)
+        out += rev.to_bytes(2, byteorder="big")
+    return bytes(out)
+
+# Helper function to encode text
 def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> bytes:
     """Encode text to be displayed on the device.
 
@@ -48,18 +81,28 @@ def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offs
         if not char_hex:
             continue
 
-        # Apply the same transformations as before (they operate on hex strings)
-        char_hex_converted = logic_reverse_bits_order(switch_endian(invert_frames(char_hex)))
+        # Convert hex string to raw bytes and apply byte-level transformations
+        try:
+            char_bytes = bytes.fromhex(char_hex)
+        except Exception:
+            # skip invalid char
+            continue
 
-        # Build bytes for this character
-        result.append(0x80)
+        # invert frames (2-byte chunks), reverse endian (bytes), then reverse bits in each 16-bit chunk
+        char_bytes = _invert_frames_bytes(char_bytes)
+        char_bytes = _switch_endian_bytes(char_bytes)
+        char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
+
+        # Build bytes for this character using bytes([...]) for small chunks to minimize overhead
+        result += bytes([0x80])
         result += color_bytes
         result += bytes([char_width & 0xFF])
         result += bytes([matrix_height_byte])
-        result += bytes.fromhex(char_hex_converted)
+        result += char_bytes
 
     return bytes(result)
 
+# Main function to send text command
 def send_text(text: str, 
               rainbow_mode: int = 0, 
               animation: int = 0, 
