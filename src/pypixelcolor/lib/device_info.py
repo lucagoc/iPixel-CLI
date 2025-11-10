@@ -122,29 +122,12 @@ def parse_device_info(response: bytes) -> DeviceInfo:
     dimensions = LED_SIZE_MAP.get(led_type, (64, 64))
     width, height = dimensions
     
-    # Parse version information
+    # Parse version information (not implemented in this snippet)
     mcu_version = "unknown"
     wifi_version = "unknown"
     
-    if len(response) >= 8:
-        # MCU Version (bytes 4-5): major.minor
-        mcu_major = response[4]
-        mcu_minor = response[5]
-        if mcu_minor < 10:
-            mcu_version = f"{mcu_major}.0{mcu_minor}"
-        else:
-            mcu_version = f"{mcu_major}.{mcu_minor}"
-        
-        # WiFi/BLE Version (bytes 6-7): major.minor
-        wifi_major = response[6]
-        wifi_minor = response[7]
-        if wifi_minor < 10:
-            wifi_version = f"{wifi_major}.0{wifi_minor}"
-        else:
-            wifi_version = f"{wifi_major}.{wifi_minor}"
-    
-    # WiFi capability based on device type
-    has_wifi = device_type_byte != 134  # Type 6 (128x32) doesn't have WiFi
+    # WiFi capability based on device type (same)
+    has_wifi = False
     
     # Extract password flag
     password_flag = response[10] if len(response) >= 11 else 255

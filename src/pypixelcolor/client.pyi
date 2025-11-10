@@ -36,13 +36,13 @@ class AsyncClient:
         """Delete a specific screen by its index."""
         ...
     async def send_image(self, path_or_hex: Union[str, pathlib._local.Path], fit_mode: str = "crop", device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
-        """Return a SendPlan for an image (PNG) or animation (GIF)."""
+        """Send an image or animation."""
         ...
     async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send a text to the device with configurable parameters."""
         ...
     async def set_brightness(self, level: int) -> None:
-        """Return a SendPlan to set the brightness."""
+        """Set the brightness of the device."""
         ...
     async def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
         """Set the clock mode of the device."""
@@ -100,13 +100,13 @@ class Client:
         """Delete a specific screen by its index."""
         ...
     def send_image(self, path_or_hex: Union[str, pathlib._local.Path], fit_mode: str = "crop", device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
-        """Return a SendPlan for an image (PNG) or animation (GIF)."""
+        """Send an image or animation."""
         ...
     def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: str = "0_VCR_OSD_MONO", font_offset_x: int = 0, font_offset_y: int = 0, font_size: int = 0, matrix_height: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send a text to the device with configurable parameters."""
         ...
     def set_brightness(self, level: int) -> None:
-        """Return a SendPlan to set the brightness."""
+        """Set the brightness of the device."""
         ...
     def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
         """Set the clock mode of the device."""

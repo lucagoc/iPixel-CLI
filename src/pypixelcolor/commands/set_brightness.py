@@ -1,10 +1,12 @@
-"""Set brightness command producing a SendPlan instead of raw bytes."""
-
-from ..lib.convert import to_int, validate_range, int_to_hex
 from ..lib.transport.send_plan import single_window_plan
 
 def set_brightness(level: int):
-    """Return a SendPlan to set the brightness."""
+    """
+    Set the brightness of the device.
+    
+    Args:
+        level (int): Brightness level (0-100).
+    """
     if (0 > int(level)) or (int(level) > 100):
         raise ValueError("Brightness level must be between 0 and 100")
     payload = bytes([

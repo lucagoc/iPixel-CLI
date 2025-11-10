@@ -1,10 +1,3 @@
-"""
-Send image/animation: return a SendPlan with single or multiple windows.
-
-The command encapsulates all protocol-specific framing (headers/tails/length prefix),
-so the transport stays generic.
-"""
-
 import logging
 from pathlib import Path
 from typing import Union, Optional
@@ -266,7 +259,9 @@ def _load_from_hex(hex_string: str) -> tuple[bytes, bool]:
 
 
 def send_image(path_or_hex: Union[str, Path], fit_mode: str = 'crop', device_info: Optional[DeviceInfo] = None):
-    """Return a SendPlan for an image (PNG) or animation (GIF).
+    """
+    Send an image or animation.
+    Supports PNG (static) and GIF (animated).
     
     Args:
         path_or_hex: Either a file path (str/Path) or hexadecimal string.
