@@ -48,6 +48,15 @@ def _load_from_file(path: Path) -> tuple[bytes, bool]:
     with open(path, "rb") as f:
         file_bytes = f.read()
     is_gif = path.suffix.lower() == ".gif"
+    
+    # if webp, raw, jpg, jpeg, bmp, tiff, etc.
+    if path.suffix.lower() in [".webp", ".jpg", ".jpeg", ".bmp", ".tiff"]:
+        logger.info(f"Converting image from {path.suffix} to PNG format")
+        img = Image.open(path)
+        output = BytesIO()
+        img.save(output, format='PNG')
+        file_bytes = output.getvalue()
+        
     return file_bytes, is_gif
 
 
@@ -281,7 +290,10 @@ def _load_from_hex(hex_string: str) -> tuple[bytes, bool]:
 def send_image(path_or_hex: Union[str, Path], fit_mode: str = 'crop', device_info: Optional[DeviceInfo] = None):
     """
     Send an image or animation.
-    Supports PNG (static) and GIF (animated).
+    Supports:
+        - .png, .webp, .jpg, .jpeg, .bmp, .tiff (static)
+        - .gif (animated)
+        - Raw hexadecimal strings (PNG or GIF) and RGB stream files (needs to be same size as device)
     
     Args:
         path_or_hex: Either a file path (str/Path) or hexadecimal string.
