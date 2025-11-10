@@ -3,15 +3,62 @@
 # Imports
 from logging import getLogger
 from typing import Optional
+import binascii
 
 # Locals
-from ..lib.encode_text import encode_text
-from ..lib.bit_tools import switch_endian, CRC32_checksum
-from ..lib.convert import to_int, int_to_hex, validate_range
+from ..lib.convert import to_int, validate_range
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.device_info import DeviceInfo
+from ..lib.img_2_pix import char_to_hex
+from ..lib.bit_tools import switch_endian, invert_frames, logic_reverse_bits_order
 
 logger = getLogger("ipixel-cli.commands.send_text")
+
+def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> bytes:
+    """Encode text to be displayed on the device.
+
+    Returns raw bytes (not a hex string). Each character block is composed as:
+      0x80 + color(3 bytes) + char_width(1 byte) + matrix_height(1 byte) + frame_bytes...
+
+    Args:
+        text (str): The text to encode.
+        matrix_height (int): The height of the LED matrix.
+        color (str): The color in hex format (e.g., 'ffffff').
+        font (str): The font name to use.
+        font_offset (tuple[int, int]): The (x, y) offset for the font.
+        font_size (int): The font size.
+
+    Returns:
+        bytes: The encoded text as raw bytes ready to be appended to a payload.
+    """
+    result = bytearray()
+
+    # Validate and convert color
+    try:
+        color_bytes = bytes.fromhex(color)
+    except Exception:
+        raise ValueError(f"Invalid color hex: {color}")
+    if len(color_bytes) != 3:
+        raise ValueError("Color must be 3 bytes (6 hex chars), e.g. 'ffffff'")
+
+    matrix_height_byte = matrix_height & 0xFF
+
+    for char in text:
+        char_hex, char_width = char_to_hex(char, matrix_height, font=font, font_offset=font_offset, font_size=font_size)
+        if not char_hex:
+            continue
+
+        # Apply the same transformations as before (they operate on hex strings)
+        char_hex_converted = logic_reverse_bits_order(switch_endian(invert_frames(char_hex)))
+
+        # Build bytes for this character
+        result.append(0x80)
+        result += color_bytes
+        result += bytes([char_width & 0xFF])
+        result += bytes([matrix_height_byte])
+        result += bytes.fromhex(char_hex_converted)
+
+    return bytes(result)
 
 def send_text(text: str, 
               rainbow_mode: int = 0, 
@@ -86,27 +133,79 @@ def send_text(text: str,
     if animation == 3 or animation == 4:
         raise ValueError("Invalid animation for text display")
 
-    # Magic numbers (pls, help me find out how they work)
+    # Magic numbers (protocol specifics)
     HEADER_1_MG = 0x1D
-    HEADER_3_MG = 0xE
-    # Dynamically calculate HEADER_GAP based on matrix_height (EXP)
+    HEADER_3_MG = 0x0E
+    # Dynamically calculate HEADER_GAP based on matrix_height
     header_gap = 0x06 + matrix_height * 0x2
 
-    header_1 = switch_endian(hex(HEADER_1_MG + len(text) * header_gap)[2:].zfill(4))
-    header_2 = "000100"
-    header_3 = switch_endian(hex(HEADER_3_MG + len(text) * header_gap)[2:].zfill(4))
-    header_4 = "0000"
-    header = header_1 + header_2 + header_3 + header_4
-    
-    save_slot_hex = hex(save_slot)[2:].zfill(4)       # Convert save slot to hex
-    number_of_characters = int_to_hex(len(text))      # Number of characters
-    
-    properties = f"000101{int_to_hex(animation)}{int_to_hex(speed)}{int_to_hex(rainbow_mode)}ffffff00000000"
-    characters = encode_text(text, matrix_height, color, font, (font_offset_x, font_offset_y), font_size)
-    checksum = CRC32_checksum(number_of_characters + properties + characters)
+    # Build payload as bytes instead of manipulating hex strings
+    payload = bytearray()
 
-    total = header + checksum + save_slot_hex + number_of_characters + properties + characters
-    logger.debug(f"Full command data: \n{total}")
-    payload = bytes.fromhex(total)
-    
-    return single_window_plan("send_text", payload)
+    # header_1 and header_3 are 2-byte little-endian values (previously produced via switch_endian)
+    header1_val = HEADER_1_MG + len(text) * header_gap
+    payload += header1_val.to_bytes(2, byteorder="little")
+
+    # header_2 was the static hex "000100" (3 bytes)
+    payload += bytes.fromhex("000100")
+
+    header3_val = HEADER_3_MG + len(text) * header_gap
+    payload += header3_val.to_bytes(2, byteorder="little")
+
+    # header_4 was two zero bytes
+    payload += b"\x00\x00"
+
+    # Prepare body parts
+    # save_slot: previously hex(...).zfill(4) (2 bytes, big-endian in original concatenation)
+    payload += save_slot.to_bytes(2, byteorder="big")
+
+    # number_of_characters: single byte
+    if len(text) > 0xFF:
+        raise ValueError("Text too long: max 255 characters")
+    num_chars_byte = len(text).to_bytes(1, byteorder="big")
+
+    # properties: 3 fixed bytes + animation + speed + rainbow + 3 bytes color + 4 zero bytes
+    try:
+        color_bytes = bytes.fromhex(color)
+    except Exception:
+        raise ValueError(f"Invalid color hex: {color}")
+    if len(color_bytes) != 3:
+        raise ValueError("Color must be 3 bytes (6 hex chars), e.g. 'ffffff'")
+
+    properties = bytearray()
+    properties += bytes.fromhex("000101")
+    properties += bytes([animation & 0xFF, speed & 0xFF, rainbow_mode & 0xFF])
+    properties += color_bytes
+    properties += b"\x00" * 4
+
+    # characters: encode_text now returns bytes
+    characters_bytes = _encode_text(text, matrix_height, color, font, (font_offset_x, font_offset_y), font_size)
+
+    # CRC32 over (num_chars + properties + characters)
+    data_for_crc = num_chars_byte + bytes(properties) + characters_bytes
+    crc = binascii.crc32(data_for_crc) & 0xFFFFFFFF
+    # original code used switch_endian on the hex CRC, so append as little-endian 4 bytes
+    checksum_bytes = crc.to_bytes(4, byteorder="little")
+
+    # Assemble final payload in the same order as original: header, checksum, save_slot, num_chars, properties, characters
+    final_payload = bytearray()
+    # header part already in payload (header1 + header2 + header3 + header4)
+    final_payload += payload
+    final_payload += checksum_bytes
+    # save_slot already appended earlier in payload; to match original order, remove the earlier addition and append here instead
+    # (We appended save_slot earlier for convenience; adjust by slicing)
+    # original header length is 2 + 3 + 2 + 2 = 9 bytes
+    header_len = 2 + 3 + 2 + 2
+    header_part = bytes(payload[:header_len])
+    # rebuild final_payload correctly
+    final_payload = bytearray()
+    final_payload += header_part
+    final_payload += checksum_bytes
+    final_payload += save_slot.to_bytes(2, byteorder="big")
+    final_payload += num_chars_byte
+    final_payload += properties
+    final_payload += characters_bytes
+
+    logger.debug(f"Full command payload (len={len(final_payload)}): {final_payload.hex()}")
+
+    return single_window_plan("send_text", bytes(final_payload))
