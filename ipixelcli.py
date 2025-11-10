@@ -94,6 +94,8 @@ async def handle_websocket(websocket, address):
                         # Send using windowed GIF sender for GIF commands, else chunked
                         if command_name in ("send_animation"):
                             await send_gif_windowed(client, data, ack_mgr)
+                        elif command_name in ("set_pixel"):
+                            await send_chunked_no_acknowledgment(client, data)
                         else:
                             await send_chunked(client, data, ack_mgr)
 
@@ -147,6 +149,8 @@ async def run_multiple_commands(commands, address):
                 data = COMMANDS[command_name](*positional_args, **keyword_args)
                 if command_name in ("send_animation"):
                     await send_gif_windowed(client, data, ack_mgr)
+                elif command_name in ("set_pixel"):
+                    await send_chunked_no_acknowledgment(client, data)
                 else:
                     await send_chunked(client, data, ack_mgr)
                 logger.info(f"Command '{command_name}' executed successfully.")
@@ -171,6 +175,8 @@ async def execute_command(command_name, params, address):
             data = COMMANDS[command_name](*positional_args, **keyword_args)
             if command_name in ("send_animation"):
                 await send_gif_windowed(client, data, ack_mgr)
+            elif command_name in ("set_pixel"):
+                await send_chunked_no_acknowledgment(client, data)
             else:
                 await send_chunked(client, data, ack_mgr)
             logger.info(f"Command '{command_name}' executed successfully.")
@@ -341,6 +347,17 @@ async def send_chunked(client, data: bytes, ack_mgr: BleAckManager, *, chunk_siz
         await asyncio.wait_for(ack_mgr.all_event.wait(), timeout=ack_timeout)
     except asyncio.TimeoutError:
         pass
+
+async def send_chunked_no_acknowledgment(client, data: bytes, *, chunk_size: int = 244, window_size: int = 12 * 1024):
+    total = len(data)
+    pos = 0
+    while pos < total:
+        window_end = min(pos + window_size, total)
+        while pos < window_end:
+            end = min(pos + chunk_size, window_end)
+            chunk = data[pos:end]
+            await client.write_gatt_char(WRITE_UUID, chunk, response=True)
+            pos = end
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WebSocket BLE Server")
