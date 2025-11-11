@@ -4,13 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypixelcolor"
-version = "1.0.0"
+version = "0.1.0"
 authors = [
   { name="Lucas Balmès", email="lucagoc@pm.me" },
 ]
-description = "A small example package"
+description = "A Python library to control iPixel Color devices."
 readme = "README.md"
 requires-python = ">=3.9"
+dependencies = [
+  "websockets",
+  "bleak",
+  "Pillow",
+  "crccheck",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",

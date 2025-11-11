@@ -52,9 +52,9 @@ def set_clock_mode(style: int = 1, date="", show_date: bool = True, format_24: b
     ])
 
     params = bytes([
-        int(style) & 0xFF,                      # Clock style
-        0x01 if bool(format_24) else 0x00,      # 24-hour format
-        0x01 if bool(show_date) else 0x00,      # Show date
+        int(style) & 0xFF,                # Clock style
+        1 if bool(format_24) else 0,      # 24-hour format
+        1 if bool(show_date) else 0,      # Show date
     ])
 
     date_bytes = bytes([

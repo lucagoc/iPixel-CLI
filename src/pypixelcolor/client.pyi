@@ -44,7 +44,7 @@ class AsyncClient:
     async def set_brightness(self, level: int) -> None:
         """Set the brightness of the device."""
         ...
-    async def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
+    async def set_clock_mode(self, style: int = 1, date = "", show_date: bool = True, format_24: bool = True) -> None:
         """Set the clock mode of the device."""
         ...
     async def set_fun_mode(self, enable: bool = False) -> None:
@@ -59,10 +59,10 @@ class AsyncClient:
     async def set_power(self, on: bool = True) -> None:
         """Set the power state of the device."""
         ...
-    async def set_rhythm_mode(self, style = 0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0") -> None:
+    async def set_rhythm_mode(self, style = 0, l1: int = 0, l2: int = 0, l3: int = 0, l4: int = 0, l5: int = 0, l6: int = 0, l7: int = 0, l8: int = 0, l9: int = 0, l10: int = 0, l11: int = 0) -> None:
         """Set the rhythm mode of the device."""
         ...
-    async def set_rhythm_mode_2(self, style = 0, t = 0) -> None:
+    async def set_rhythm_mode_2(self, style: int = 0, t: int = 0) -> None:
         """Set the rhythm mode of the device (alternative version)."""
         ...
     async def set_time(self, hour: Optional[int] = None, minute: Optional[int] = None, second: Optional[int] = None) -> None:
@@ -108,7 +108,7 @@ class Client:
     def set_brightness(self, level: int) -> None:
         """Set the brightness of the device."""
         ...
-    def set_clock_mode(self, style = 1, date = "", show_date = True, format_24 = True) -> None:
+    def set_clock_mode(self, style: int = 1, date = "", show_date: bool = True, format_24: bool = True) -> None:
         """Set the clock mode of the device."""
         ...
     def set_fun_mode(self, enable: bool = False) -> None:
@@ -123,10 +123,10 @@ class Client:
     def set_power(self, on: bool = True) -> None:
         """Set the power state of the device."""
         ...
-    def set_rhythm_mode(self, style = 0, l1 = "0", l2 = "0", l3 = "0", l4 = "0", l5 = "0", l6 = "0", l7 = "0", l8 = "0", l9 = "0", l10 = "0", l11 = "0") -> None:
+    def set_rhythm_mode(self, style = 0, l1: int = 0, l2: int = 0, l3: int = 0, l4: int = 0, l5: int = 0, l6: int = 0, l7: int = 0, l8: int = 0, l9: int = 0, l10: int = 0, l11: int = 0) -> None:
         """Set the rhythm mode of the device."""
         ...
-    def set_rhythm_mode_2(self, style = 0, t = 0) -> None:
+    def set_rhythm_mode_2(self, style: int = 0, t: int = 0) -> None:
         """Set the rhythm mode of the device (alternative version)."""
         ...
     def set_time(self, hour: Optional[int] = None, minute: Optional[int] = None, second: Optional[int] = None) -> None:
