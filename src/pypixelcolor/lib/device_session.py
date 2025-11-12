@@ -12,7 +12,7 @@ from bleak import BleakClient
 
 from .constants import NOTIFY_UUID
 from .device_info import DeviceInfo
-from .transport.send_plan import send_plan, SendPlan
+from .transport.send_plan import send_plan
 from .transport.ack_manager import AckManager
 from .command_result import CommandResult
 
