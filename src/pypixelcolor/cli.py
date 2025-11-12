@@ -72,11 +72,11 @@ def main() -> None:
     )
     parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
     parser.add_argument("--noemojis", action="store_true", help="Disable emojis in log output")
+    parser.add_argument("--loglevel", default="INFO", help="Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 
     args = parser.parse_args()
     
-    setup_logging(use_emojis=not args.noemojis)
-
+    setup_logging(use_emojis=not args.noemojis, level=args.loglevel)
     if args.scan:
         asyncio.run(scan_devices())
     elif args.command:

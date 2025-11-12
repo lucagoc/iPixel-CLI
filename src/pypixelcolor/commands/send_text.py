@@ -8,7 +8,7 @@ from logging import getLogger
 from typing import Optional, Union
 
 # Locals
-from ..lib.convert import validate_range
+from ..fonts.font_enum import Font
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.device_info import DeviceInfo
 from ..fonts.font_enum import Font
@@ -67,14 +67,20 @@ def get_font_path(font_name: str) -> str:
         return font_folder
     
     # Return default font path
-    default_font = os.path.join(fonts_dir, "0_VCR_OSD_MONO")
+    default_font = os.path.join(fonts_dir, "0_VCR_OSD_MONO.ttf")
     logger.warning(f"Font '{font_name}' not found. Using default font at {default_font}.")
     return default_font
 
 
-def charimg_to_hex_string(img):
+def charimg_to_hex_string(img: Image.Image) -> tuple[str, int]:
     """
     Convert a character image to a hexadecimal string.
+    
+    Args:
+        img (PIL.Image): The character image.
+    
+    Returns:
+        tuple: (hex_string, char_width)
     """
 
     # Load the image
@@ -86,6 +92,7 @@ def charimg_to_hex_string(img):
         raise ValueError("The image must be " + str(char_width) + "x" + str(char_height) + " pixels")
 
     hex_string = ""
+    logger.debug("="*char_width + " %i"%char_width)
 
     for y in range(char_height):
         line_value = 0
@@ -93,87 +100,86 @@ def charimg_to_hex_string(img):
 
         for x in range(char_width):
             pixel = img.getpixel((x, y))
-            if pixel > 0:
+            if pixel > 0: # type: ignore
                 if x < 16:
                     line_value |= (1 << (15 - x))
                 else:
                     line_value_2 |= (1 << (31 - x))
 
         # Merge line_value_2 into line_value for 32-bit value
-        line_value = (line_value_2 << 16) | line_value
+        line_value = (line_value_2) | (line_value << 16) if char_width > 16 else line_value
 
-        # Convert the value to a 4 bytes hex string
-        hex_string += f"{line_value:04X}"
-        
+        # Convert the value to a hex string
         # Print the line value for debugging
-        binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
+        if char_width <= 8:
+            line_value >>= 8
+            hex_string +=  f"{line_value:02X}"
+            binary_str = f"{line_value:0{8}b}".replace('0', '.').replace('1', '#')
+        elif char_width <= 16:
+            hex_string +=  f"{line_value:04X}"
+            binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
+        elif char_width <= 24:
+            line_value >>= 8
+            hex_string +=  f"{line_value:06X}"
+            binary_str = f"{line_value:0{24}b}".replace('0', '.').replace('1', '#')
+        else:
+            hex_string +=  f"{line_value:08X}"
+            binary_str = f"{line_value:0{32}b}".replace('0', '.').replace('1', '#')            
         logger.debug(binary_str)
 
     return hex_string, char_width
 
 
-def char_to_hex(character: str, matrix_height:int, font_offset=(0, 0), font_size=16, font="default"):
+def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], font: str):
     """
-    Convert a character to its hexadecimal representation with an optional offset.
-    Returns: (hex_string, width)
+    Convert a character to its hexadecimal representation.
+    
+    Args:
+        character (str): The character to convert.
+        text_size (int): The size of the text (height of the matrix).
+        font_offset (tuple[int, int]): The (x, y) offset for the font.
+        font (str): The font name to use.
+        
+    Returns:
+        tuple: (hex_string, char_width)
     """
     font_path = get_font_path(font)
 
     try:
-        # Folder
-        if os.path.isdir(font_path):
-            if os.path.exists(font_path + "/" + str(matrix_height) + "p"):
-                font_path = font_path + "/" + str(matrix_height) + "p"
-                png_file = os.path.join(font_path, f"{ord(character):04X}.png")
-                if os.path.exists(png_file):
-                    img_rgb = Image.open(png_file)
-                    return charimg_to_hex_string(img_rgb)
-                else:
-                    logger.warning(f"Cannot find PNG file : {png_file}, using a white image.")
-                    # Create a white 9h image as fallback
-                    img_rgb = Image.new('RGB', (9, matrix_height), (255, 255, 255))
-                    return charimg_to_hex_string(img_rgb)
-            else:
-                logger.warning(f"Cannot find font data for font={font} and matrix_height={matrix_height}, using a white image.")
-                # Create a white 9h image as fallback
-                img_rgb = Image.new('RGB', (9, matrix_height), (255, 255, 255))
-                return charimg_to_hex_string(img_rgb)
-        
         # Generate image with dynamic width
         # First, create a temporary large image to measure text
-        temp_img = Image.new('1', (100, matrix_height), 0)
+        temp_img = Image.new('1', (100, text_size), 0)
         temp_draw = ImageDraw.Draw(temp_img)
-        font_obj = ImageFont.truetype(font_path, font_size)
+        font_obj = ImageFont.truetype(font_path, text_size)
         
         # Get text bounding box
         bbox = temp_draw.textbbox((0, 0), character, font=font_obj)
         text_width = bbox[2] - bbox[0]
-        
+
         # Clamp text_width between min and max values to prevent crash
         # Values tested on 16px height device
         # Might be different for 20px or 24px devices
         min_width = 9
         max_width = 16
-        text_width = max(min_width, min(text_width, max_width))
-        # print(f"[INFO] Character '{character}' width: {text_width}px")
-        
+        text_width = int(max(min_width, min(text_width, max_width)))
+
         # Create final image with calculated width
-        img = Image.new('1', (text_width, matrix_height), 0)
+        img = Image.new('1', (int(text_width), int(text_size)))
         d = ImageDraw.Draw(img)
         d.text(font_offset, character, fill=1, font=font_obj)
 
         img_rgb = img.convert('RGB')
-        
+
         return charimg_to_hex_string(img_rgb)
     except Exception as e:
         logger.error(f"Error occurred while converting character to hex: {e}")
         return None, 0
 
 
-def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> bytes:
+def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: tuple[int, int]) -> bytes:
     """Encode text to be displayed on the device.
 
-    Returns raw bytes (not a hex string). Each character block is composed as:
+    Returns raw bytes. Each character block is composed as:
       0x80 + color(3 bytes) + char_width(1 byte) + matrix_height(1 byte) + frame_bytes...
 
     Args:
@@ -182,7 +188,6 @@ def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offs
         color (str): The color in hex format (e.g., 'ffffff').
         font (str): The font name to use.
         font_offset (tuple[int, int]): The (x, y) offset for the font.
-        font_size (int): The font size.
 
     Returns:
         bytes: The encoded text as raw bytes ready to be appended to a payload.
@@ -197,10 +202,8 @@ def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offs
     if len(color_bytes) != 3:
         raise ValueError("Color must be 3 bytes (6 hex chars), e.g. 'ffffff'")
 
-    matrix_height_byte = matrix_height & 0xFF
-
     for char in text:
-        char_hex, char_width = char_to_hex(char, matrix_height, font=font, font_offset=font_offset, font_size=font_size)
+        char_hex, char_width = char_to_hex(char, text_size, font=font, font_offset=font_offset)
         if not char_hex:
             continue
 
@@ -220,7 +223,7 @@ def _encode_text(text: str, matrix_height: int, color: str, font: str, font_offs
         result += bytes([0x80])
         result += color_bytes
         result += bytes([char_width & 0xFF])
-        result += bytes([matrix_height_byte])
+        result += bytes([text_size & 0xFF])
         result += char_bytes
 
     return bytes(result)
@@ -234,10 +237,8 @@ def send_text(text: str,
               speed: int = 80,
               color: str = "ffffff",
               font: Union[Font, str] = Font.FONGSUG,
-              font_offset_x: int = 0,
-              font_offset_y: int = 0,
-              font_size: int = 0,
-              matrix_height: Optional[int] = None,
+              font_offset: tuple[int, int] = (0, 0),
+              text_size: Optional[int] = None,
               device_info: Optional[DeviceInfo] = None
               ):
     """
@@ -253,8 +254,7 @@ def send_text(text: str,
         font (str, optional): Font name. Defaults to "default".
         font_offset_x (int, optional): Font X offset. Defaults to 0.
         font_offset_y (int, optional): Font Y offset. Defaults to 0.
-        font_size (int, optional): Font size. Defaults to 0 (auto).
-        matrix_height (int, optional): Matrix height. Auto-detected from device_info if not specified.
+        text_size (int, optional): Text size. Auto-detected from device_info if not specified.
         device_info (DeviceInfo, optional): Device information (injected automatically by DeviceSession).
 
     Returns:
@@ -265,36 +265,40 @@ def send_text(text: str,
     """
     
     # Auto-detect matrix_height from device_info if available
-    if matrix_height is None:
+    if text_size is None:
         if device_info is not None:
-            matrix_height = device_info.height
-            logger.debug(f"Auto-detected matrix height from device: {matrix_height}")
+            text_size = device_info.height
+            logger.debug(f"Auto-detected matrix height from device: {text_size}")
         else:
-            matrix_height = 16  # Default fallback
+            text_size = 16  # Default fallback
             logger.warning("Using default matrix height: 16")
     
     rainbow_mode = int(rainbow_mode)
     animation = int(animation)
     save_slot = int(save_slot)
     speed = int(speed)
-    font_offset_x = int(font_offset_x)
-    font_offset_y = int(font_offset_y)
-    font_size = int(font_size)
-    matrix_height = int(matrix_height)
     
-    for param, min_val, max_val, name in [
+    # Normalize font_offset to two integers (x, y)
+    try:
+        font_offset_x, font_offset_y = font_offset
+        font_offset_x = int(font_offset_x)
+        font_offset_y = int(font_offset_y)
+    except Exception:
+        raise ValueError("font_offset must be a tuple of two integers (x, y)")
+    text_size = int(text_size)
+    
+    # Validate parameter ranges
+    checks = [
         (rainbow_mode, 0, 9, "Rainbow mode"),
         (animation, 0, 7, "Animation"),
         (save_slot, 1, 10, "Save slot"),
         (speed, 0, 100, "Speed"),
         (len(text), 1, 100, "Text length"),
-        (matrix_height, 1, 128, "Matrix height")
-    ]:
-        validate_range(param, min_val, max_val, name)
-
-    # Apply default font size if not specified
-    if font_size == 0:
-        font_size = matrix_height
+        (text_size, 1, 128, "Matrix height"),
+    ]
+    for param, min_val, max_val, name in checks:
+        if not (min_val <= param <= max_val):
+            raise ValueError(f"{name} must be between {min_val} and {max_val} (got {param})")
 
     # Normalize font: accept either FontName or str for backward compatibility
     if isinstance(font, Font):
@@ -310,7 +314,7 @@ def send_text(text: str,
     HEADER_1_MG = 0x1D
     HEADER_3_MG = 0x0E
     # Dynamically calculate HEADER_GAP based on matrix_height
-    header_gap = 0x06 + matrix_height * 0x2
+    header_gap = 0x06 + text_size * 0x2
 
     # Build payload as bytes instead of manipulating hex strings
     payload = bytearray()
@@ -352,7 +356,7 @@ def send_text(text: str,
     properties += b"\x00" * 4
 
     # characters: encode_text now returns bytes
-    characters_bytes = _encode_text(text, matrix_height, color, font_str, (font_offset_x, font_offset_y), font_size)
+    characters_bytes = _encode_text(text, text_size, color, font_str, (font_offset_x, font_offset_y))
 
     # CRC32 over (num_chars + properties + characters)
     data_for_crc = num_chars_byte + bytes(properties) + characters_bytes

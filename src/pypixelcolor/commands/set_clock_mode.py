@@ -3,7 +3,6 @@ from datetime import datetime
 
 # Locals
 from ..lib.transport.send_plan import single_window_plan
-from ..lib.convert import validate_range
 
 # Commands
 def set_clock_mode(style: int = 1, date="", show_date: bool = True, format_24: bool = True):
@@ -37,11 +36,16 @@ def set_clock_mode(style: int = 1, date="", show_date: bool = True, format_24: b
             raise ValueError(f"Invalid date format: {e}")
 
     # Validate ranges
-    validate_range(style, 0, 8, "Clock mode")
-    validate_range(day_of_week, 1, 7, "Day of week")
-    validate_range(month, 1, 12, "Month")
-    validate_range(day, 1, 31, "Day")
-    validate_range(year, 0, 99, "Year")
+    if int(style) not in range(0, 9):
+        raise ValueError("Clock style must be between 0 and 8")
+    if int(day_of_week) not in range(1, 8):
+        raise ValueError("Day of week must be between 1 and 7")
+    if int(year) not in range(0, 100):
+        raise ValueError("Year must be between 0 and 99")
+    if int(month) not in range(1, 13):
+        raise ValueError("Month must be between 1 and 12")
+    if int(day) not in range(1, 32):
+        raise ValueError("Day must be between 1 and 31")
 
     # Build byte sequence using direct bytes constructions
     header = bytes([

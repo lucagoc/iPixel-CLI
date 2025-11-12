@@ -15,7 +15,7 @@ class EmojiFormatter(logging.Formatter):
         return super().format(record)
 
 
-def setup_logging(use_emojis=True):
+def setup_logging(use_emojis=True, level="INFO") -> None:
     log_format = '%(levelname)s [%(asctime)s] [%(name)s] %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
     
@@ -27,4 +27,4 @@ def setup_logging(use_emojis=True):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     
-    logging.basicConfig(level=logging.INFO, handlers=[handler])
+    logging.basicConfig(level=level, handlers=[handler])
