@@ -67,7 +67,7 @@ def get_font_path(font_name: str) -> str:
         return font_folder
     
     # Return default font path
-    default_font = os.path.join(fonts_dir, "0_VCR_OSD_MONO.ttf")
+    default_font = os.path.join(fonts_dir, "1_VCR_OSD_MONO.ttf")
     logger.warning(f"Font '{font_name}' not found. Using default font at {default_font}.")
     return default_font
 
@@ -236,7 +236,7 @@ def send_text(text: str,
               save_slot: int = 1,
               speed: int = 80,
               color: str = "ffffff",
-              font: Union[Font, str] = Font.FONGSUG,
+              font: Union[Font, str] = Font.FONSUG,
               font_offset: tuple[int, int] = (0, 0),
               text_size: Optional[int] = None,
               device_info: Optional[DeviceInfo] = None

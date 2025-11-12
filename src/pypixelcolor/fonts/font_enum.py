@@ -7,7 +7,7 @@ class Font(Enum):
     Enum Font for available fonts in the library.
     """
 
-    FONGSUG = "0_FONGSUG"
+    FONSUG = "0_FONSUG"
     VCR_OSD_MONO = "1_VCR_OSD_MONO"
 
     def __str__(self) -> str:  # pragma: no cover - trivial
@@ -17,8 +17,8 @@ class Font(Enum):
     def from_str(cls, val: Any) -> "Font":
         """Convert a string or Font to enum Font.
 
-        Accepts either the enum member, the enum name (e.g. "FONGSUG") or the
-        raw value (e.g. "0_FONGSUG"). Raises ValueError if unknown.
+        Accepts either the enum member, the enum name (e.g. "FONSUG") or the
+        raw value (e.g. "0_FONSUG"). Raises ValueError if unknown.
         """
         if isinstance(val, cls):
             return val
