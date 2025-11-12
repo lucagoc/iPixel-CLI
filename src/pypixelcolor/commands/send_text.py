@@ -147,8 +147,8 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
 
     try:
         # Generate image with dynamic width
-        # First, create a temporary large image to measure text
-        temp_img = Image.new('1', (100, text_size), 0)
+        # First, create a temporary large image to measure text in grayscale
+        temp_img = Image.new('L', (100, text_size), 0)
         temp_draw = ImageDraw.Draw(temp_img)
         font_obj = ImageFont.truetype(font_path, text_size)
         
@@ -163,14 +163,21 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
         max_width = 16
         text_width = int(max(min_width, min(text_width, max_width)))
 
-        # Create final image with calculated width
-        img = Image.new('1', (int(text_width), int(text_size)))
+        # Create final image in grayscale mode for pixel-perfect rendering
+        img = Image.new('L', (int(text_width), int(text_size)), 0)
         d = ImageDraw.Draw(img)
-        d.text(font_offset, character, fill=1, font=font_obj)
+        
+        # Draw text in white (255) for pixel-perfect rendering
+        d.text(font_offset, character, fill=255, font=font_obj)
 
-        img_rgb = img.convert('RGB')
+        # Apply threshold for pixel-perfect conversion
+        def apply_threshold(pixel):
+            PIXEL_THRESHOLD = 70    # Adjust threshold for better accuracy
+            return 255 if pixel > PIXEL_THRESHOLD else 0
+        
+        img = img.point(apply_threshold, mode='L')
 
-        return charimg_to_hex_string(img_rgb)
+        return charimg_to_hex_string(img)
     except Exception as e:
         logger.error(f"Error occurred while converting character to hex: {e}")
         return None, 0
@@ -194,32 +201,29 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
     """
     result = bytearray()
 
-    # Validate and convert color
+    # Convert color to bytes
     try:
         color_bytes = bytes.fromhex(color)
     except Exception:
         raise ValueError(f"Invalid color hex: {color}")
+    
+    # Validate color length
     if len(color_bytes) != 3:
         raise ValueError("Color must be 3 bytes (6 hex chars), e.g. 'ffffff'")
 
+    # Build each character block
     for char in text:
         char_hex, char_width = char_to_hex(char, text_size, font=font, font_offset=font_offset)
         if not char_hex:
             continue
-
-        # Convert hex string to raw bytes and apply byte-level transformations
-        try:
-            char_bytes = bytes.fromhex(char_hex)
-        except Exception:
-            # skip invalid char
-            continue
-
-        # invert frames (2-byte chunks), reverse endian (bytes), then reverse bits in each 16-bit chunk
+        
+        # Convert hex string to raw bytes, invert frames (2-byte chunks), reverse endian (bytes), then reverse bits in each 16-bit chunk
+        char_bytes = bytes.fromhex(char_hex)
         char_bytes = _invert_frames_bytes(char_bytes)
         char_bytes = _switch_endian_bytes(char_bytes)
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
-        # Build bytes for this character using bytes([...]) for small chunks to minimize overhead
+        # Build bytes for this character
         result += bytes([0x80])
         result += color_bytes
         result += bytes([char_width & 0xFF])
