@@ -72,27 +72,23 @@ def get_font_path(font_name: str) -> str:
     return default_font
 
 
-def charimg_to_hex_string(img: Image.Image) -> tuple[str, int]:
+def charimg_to_hex_string(img: Image.Image) -> tuple[bytes, int]:
     """
-    Convert a character image to a hexadecimal string.
-    
-    Args:
-        img (PIL.Image): The character image.
-    
+    Convert a character image to a bytes representation (one line after another).
+
     Returns:
-        tuple: (hex_string, char_width)
+        tuple: (bytes_data, char_width)
     """
 
-    # Load the image
+    # Load the image in grayscale and get dimensions
     img = img.convert("L")
     char_width, char_height = img.size
 
-    # Check if the image is char_width x char_height pixels
     if img.size != (char_width, char_height):
         raise ValueError("The image must be " + str(char_width) + "x" + str(char_height) + " pixels")
 
-    hex_string = ""
-    logger.debug("="*char_width + " %i"%char_width)
+    data_bytes = bytearray()
+    logger.debug("=" * char_width + " %i" % char_width)
 
     for y in range(char_height):
         line_value = 0
@@ -100,7 +96,7 @@ def charimg_to_hex_string(img: Image.Image) -> tuple[str, int]:
 
         for x in range(char_width):
             pixel = img.getpixel((x, y))
-            if pixel > 0: # type: ignore
+            if pixel > 0:  # type: ignore
                 if x < 16:
                     line_value |= (1 << (15 - x))
                 else:
@@ -109,25 +105,27 @@ def charimg_to_hex_string(img: Image.Image) -> tuple[str, int]:
         # Merge line_value_2 into line_value for 32-bit value
         line_value = (line_value_2) | (line_value << 16) if char_width > 16 else line_value
 
-        # Convert the value to a hex string
-        # Print the line value for debugging
+        # Build the line bytes (big-endian) according to width
         if char_width <= 8:
             line_value >>= 8
-            hex_string +=  f"{line_value:02X}"
+            byte_len = 1
             binary_str = f"{line_value:0{8}b}".replace('0', '.').replace('1', '#')
         elif char_width <= 16:
-            hex_string +=  f"{line_value:04X}"
+            byte_len = 2
             binary_str = f"{line_value:0{16}b}".replace('0', '.').replace('1', '#')
         elif char_width <= 24:
             line_value >>= 8
-            hex_string +=  f"{line_value:06X}"
+            byte_len = 3
             binary_str = f"{line_value:0{24}b}".replace('0', '.').replace('1', '#')
         else:
-            hex_string +=  f"{line_value:08X}"
-            binary_str = f"{line_value:0{32}b}".replace('0', '.').replace('1', '#')            
+            byte_len = 4
+            binary_str = f"{line_value:0{32}b}".replace('0', '.').replace('1', '#')
+
         logger.debug(binary_str)
 
-    return hex_string, char_width
+        data_bytes += line_value.to_bytes(byte_len, byteorder='big')
+
+    return bytes(data_bytes), char_width
 
 
 def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], font: str):
@@ -213,12 +211,11 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
 
     # Build each character block
     for char in text:
-        char_hex, char_width = char_to_hex(char, text_size, font=font, font_offset=font_offset)
-        if not char_hex:
+        char_bytes, char_width = char_to_hex(char, text_size, font=font, font_offset=font_offset)
+        if not char_bytes:
             continue
-        
-        # Convert hex string to raw bytes, invert frames (2-byte chunks), reverse endian (bytes), then reverse bits in each 16-bit chunk
-        char_bytes = bytes.fromhex(char_hex)
+
+        # Apply byte-level transformations
         char_bytes = _invert_frames_bytes(char_bytes)
         char_bytes = _switch_endian_bytes(char_bytes)
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
@@ -375,7 +372,8 @@ def send_text(text: str,
         (font_offset_x, font_offset_y)
     )
     
-    data_payload = len(text).to_bytes() + properties + characters_bytes
+    # number_of_characters: single byte
+    data_payload = bytes([len(text)]) + properties + characters_bytes
 
     #########################
     #        CHECKSUM       #
