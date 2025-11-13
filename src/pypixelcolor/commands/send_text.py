@@ -323,7 +323,6 @@ def send_text(text: str,
     #        HEADER        #
     ########################
     
-    # Build payload as bytes instead of manipulating hex strings
     header = bytearray()
 
     header1_val = 0x1D + len(text) * (0x06 + text_size * 0x2) # Magic formula
@@ -336,14 +335,14 @@ def send_text(text: str,
         0x00  # Reserved
     ])
     header += header3_val.to_bytes(2, byteorder="little")
-    header += bytes([0x00, 0x00])
+    header += bytes([
+        0x00,   # Reserved 
+        0x00    # Reserved
+    ])
 
     #########################
     #       PROPERTIES      #
     #########################
-
-    payload = bytearray()
-    payload += int(save_slot).to_bytes(2, byteorder="big") # Weird
 
     properties = bytearray()
     properties += bytes([
@@ -368,14 +367,21 @@ def send_text(text: str,
     #       CHARACTERS      #
     #########################
 
-    characters_bytes = _encode_text(text, text_size, color, font_str, (font_offset_x, font_offset_y))
+    characters_bytes = _encode_text(
+        text, 
+        text_size, 
+        color, 
+        font_str, 
+        (font_offset_x, font_offset_y)
+    )
+    
+    data_payload = len(text).to_bytes() + properties + characters_bytes
 
     #########################
     #        CHECKSUM       #
     #########################
 
-    data_for_crc = len(text).to_bytes() + properties + characters_bytes
-    crc = binascii.crc32(data_for_crc) & 0xFFFFFFFF
+    crc = binascii.crc32(data_payload) & 0xFFFFFFFF
 
     #########################
     #     FINAL PAYLOAD     #
@@ -385,7 +391,7 @@ def send_text(text: str,
     final_payload = bytearray()
     final_payload += bytes(header)                                  # header
     final_payload += crc.to_bytes(4, byteorder="little")            # checksum
-    final_payload += int(save_slot).to_bytes(2, byteorder="big")    # save_slot
-    final_payload += data_for_crc                                   # num_chars + properties + characters
+    final_payload += bytes([int(save_slot) & 0xFF, 0x00])           # save_slot
+    final_payload += data_payload                                   # num_chars + properties + characters
 
     return single_window_plan("send_text", bytes(final_payload))
