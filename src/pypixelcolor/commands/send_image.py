@@ -2,7 +2,7 @@ import logging
 import binascii
 from pathlib import Path
 from typing import Union, Optional
-from PIL import Image
+from PIL import Image, ImageSequence
 from PIL.Image import Palette
 from io import BytesIO
 from ..lib.transport.send_plan import SendPlan, Window, single_window_plan
@@ -169,11 +169,14 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
     
     # Check if resize is needed
     needs_resize = img.size != (target_width, target_height)
+    logger.debug(f"Original image size: {img.size[0]}x{img.size[1]}, Target size: {target_width}x{target_height}")
     
     # Check if conversion from palette mode is needed
     needs_conversion = img.mode in ('P', 'PA', 'L', 'LA')
     
-    if not needs_resize and not needs_conversion:
+    # For GIFs we always re-save/re-encode the animation to ensure per-frame
+    # metadata (duration, disposal, palette) is normalized and consistent.
+    if not needs_resize and not needs_conversion and not is_gif:
         logger.debug(f"Image already at target size {target_width}x{target_height} and in correct mode")
         return file_bytes
     
@@ -185,47 +188,58 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         logger.info(f"Converting image from mode {img.mode} to RGB (removing palette)")
     
     if is_gif:
-        # Handle animated GIF
+        # Always re-encode GIFs by iterating per-frame. Use per-frame
+        # `frame.info` (falls back to `img.info`) to collect accurate
+        # durations and disposal methods.
         frames = []
         durations = []
         disposal_methods = []
-        
-        try:
-            frame_index = 0
-            while True:
-                # Resize frame with aspect ratio preserved (crop or fit based on mode)
-                if needs_resize:
-                    if fit_mode == 'fit':
-                        processed_frame = _resize_and_fit_image(img, target_width, target_height)
-                    else:
-                        processed_frame = _resize_and_crop_image(img, target_width, target_height)
+
+        for frame in ImageSequence.Iterator(img):
+            f = frame.copy()
+
+            # Resize frame if requested
+            if needs_resize:
+                if fit_mode == 'fit':
+                    processed = _resize_and_fit_image(f, target_width, target_height)
                 else:
-                    processed_frame = img
-                
-                # Keep frames in palette mode (P) for GIF compatibility
-                # Only convert if necessary, preserving the original palette structure
-                if processed_frame.mode in ('P', 'PA'):
-                    # Already in palette mode, keep it
-                    frames.append(processed_frame)
-                elif processed_frame.mode in ('RGBA', 'LA'):
-                    # Has transparency, convert to P with adaptive palette
-                    frames.append(processed_frame.convert('P', palette=Palette.ADAPTIVE, colors=256))
-                else:
-                    # No transparency, convert to P with adaptive palette
-                    frames.append(processed_frame.convert('P', palette=Palette.ADAPTIVE, colors=256))
-                
-                # Preserve animation metadata
-                durations.append(img.info.get('duration', 100))
-                disposal_methods.append(img.info.get('disposal', 2))  # 2 = restore to background
-                
-                frame_index += 1
-                img.seek(frame_index)
-        except EOFError:
-            pass  # End of frames
-        
-        logger.info(f"Processing {len(frames)} frames for animated GIF")
-        
-        # Save resized GIF with preserved animation metadata
+                    processed = _resize_and_crop_image(f, target_width, target_height)
+            else:
+                processed = f
+
+            # Convert to palette mode ('P') for GIF compatibility. If the
+            # frame has transparency, convert via RGBA to preserve alpha.
+            if processed.mode in ('P', 'PA'):
+                pframe = processed
+            elif processed.mode in ('RGBA', 'LA') or 'transparency' in f.info:
+                pframe = processed.convert('P', palette=Palette.ADAPTIVE, colors=256)
+            else:
+                pframe = processed.convert('P', palette=Palette.ADAPTIVE, colors=256)
+
+            frames.append(pframe)
+
+            # Prefer per-frame info, fallback to global img.info
+            durations.append(f.info.get('duration', img.info.get('duration', 100)))
+            disposal_methods.append(f.info.get('disposal', img.info.get('disposal', 2)))
+
+        frame_count = len(frames)
+        logger.info(f"Processing {frame_count} frames for animated GIF")
+
+        # Normalize durations and disposal_methods so their length equals frame_count
+        durations = [int(d) for d in durations]
+        if len(durations) < frame_count:
+            last = durations[-1] if durations else 100
+            durations += [last] * (frame_count - len(durations))
+        elif len(durations) > frame_count:
+            durations = durations[:frame_count]
+
+        disposal_methods = [int(d) for d in disposal_methods]
+        if len(disposal_methods) < frame_count:
+            last = disposal_methods[-1] if disposal_methods else 2
+            disposal_methods += [last] * (frame_count - len(disposal_methods))
+        elif len(disposal_methods) > frame_count:
+            disposal_methods = disposal_methods[:frame_count]
+
         output = BytesIO()
         frames[0].save(
             output,
@@ -234,8 +248,8 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
             append_images=frames[1:],
             duration=durations,
             loop=img.info.get('loop', 0),
-            disposal=disposal_methods[0] if disposal_methods else 2,
-            optimize=False  # Disable optimization to preserve exact frame data
+            disposal=disposal_methods,
+            optimize=False,
         )
         
         # Size
