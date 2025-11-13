@@ -28,5 +28,11 @@ license-files = ["LICEN[CS]E*"]
 Homepage = "https://github.com/lucagoc/pypixelcolor"
 Issues = "https://github.com/lucagoc/pypixelcolor/issues"
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0.0",
+  "pytest-cov>=4.0.0",
+]
+
 [tool.setuptools.package-data]
 pypixelcolor = ["fonts/*.ttf"]

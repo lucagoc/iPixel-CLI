@@ -7,8 +7,9 @@ class Font(Enum):
     Enum Font for available fonts in the library.
     """
 
-    FONSUG = "0_FONSUG"
-    VCR_OSD_MONO = "1_VCR_OSD_MONO"
+    CUSONG = "0_CUSONG16"
+    FONSUG = "1_FONSUG16"
+    VCR_OSD_MONO = "2_VCR_OSD_MONO"
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return self.value

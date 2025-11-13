@@ -38,7 +38,7 @@ class AsyncClient:
     async def send_image(self, path_or_hex: Union[str, pathlib._local.Path], fit_mode: str = "crop", device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send an image or animation."""
         ...
-    async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: Union[pypixelcolor.fonts.font_enum.Font, str] = 0_FONSUG, font_offset: tuple[int, int] = (0, 0), text_size: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
+    async def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: Union[pypixelcolor.fonts.font_enum.Font, str] = 1_FONSUG16, font_offset: tuple[int, int] = (0, 0), text_size: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send a text to the device with configurable parameters."""
         ...
     async def set_brightness(self, level: int) -> None:
@@ -102,7 +102,7 @@ class Client:
     def send_image(self, path_or_hex: Union[str, pathlib._local.Path], fit_mode: str = "crop", device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send an image or animation."""
         ...
-    def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: Union[pypixelcolor.fonts.font_enum.Font, str] = 0_FONSUG, font_offset: tuple[int, int] = (0, 0), text_size: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
+    def send_text(self, text: str, rainbow_mode: int = 0, animation: int = 0, save_slot: int = 1, speed: int = 80, color: str = "ffffff", font: Union[pypixelcolor.fonts.font_enum.Font, str] = 1_FONSUG16, font_offset: tuple[int, int] = (0, 0), text_size: Optional[int] = None, device_info: Optional[pypixelcolor.lib.device_info.DeviceInfo] = None) -> None:
         """Send a text to the device with configurable parameters."""
         ...
     def set_brightness(self, level: int) -> None:
