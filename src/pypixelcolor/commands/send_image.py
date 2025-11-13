@@ -241,14 +241,23 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
             disposal_methods = disposal_methods[:frame_count]
 
         output = BytesIO()
+
+        # Single frame GIF hotfix: PIL expects single-frame GIFs to have duration and disposal
+        if frame_count == 1:
+            duration_arg = int(durations[0]) if durations else int(img.info.get('duration', 100))
+            disposal_arg = int(disposal_methods[0]) if disposal_methods else int(img.info.get('disposal', 2))
+        else:
+            duration_arg = durations
+            disposal_arg = disposal_methods
+
         frames[0].save(
             output,
             format='GIF',
             save_all=True,
             append_images=frames[1:],
-            duration=durations,
+            duration=duration_arg,
             loop=img.info.get('loop', 0),
-            disposal=disposal_methods,
+            disposal=disposal_arg,
             optimize=False,
         )
         
