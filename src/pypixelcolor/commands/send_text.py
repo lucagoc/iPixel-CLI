@@ -61,7 +61,6 @@ def get_font_path(font_name: str) -> str:
         return os.path.join(fonts_dir, font.value + ".ttf")
     except:
         pass
-        
     
     # Check if ttf file exists
     font_file = os.path.join(fonts_dir, f"{font_name}.ttf")
@@ -151,6 +150,12 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
     font_path = get_font_path(font)
 
     try:
+        
+        # PIL
+        font_offset_x, font_offset_y = font_offset 
+        font_offset_y += -1
+        font_offset = (font_offset_x, font_offset_y)
+        
         # Generate image with dynamic width
         # First, create a temporary large image to measure text in grayscale
         temp_img = Image.new('L', (100, text_size), 0)
@@ -228,7 +233,7 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
         # Build bytes for this character
-        result += bytes([0x00 if char_width <= 8 else 0x02]) # or 0x80 ? or 0x2a ?
+        result += bytes([0x00 if text_size <= 16 else 0x80]) # or 0x80 ? or 0x2a ?
         result += color_bytes
         #result += bytes([char_width & 0xFF])
         #result += bytes([text_size & 0xFF])
@@ -290,9 +295,6 @@ def send_text(text: str,
         raise ValueError("font_offset must be a tuple of two integers (x, y)")
     text_size = int(text_size)
     
-    # debug
-    font_offset_y = -1
-    
     # properties: 3 fixed bytes + animation + speed + rainbow + 3 bytes color + 4 zero bytes
     try:
         color_bytes = bytes.fromhex(color)
@@ -333,8 +335,18 @@ def send_text(text: str,
     header = bytearray()
 
     # Magic formulas
-    header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
-    header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
+    if text_size <= 16:
+        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
+        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
+    elif text_size <= 20:
+        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x01
+        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x01
+    elif text_size <= 24:
+        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x02
+        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x02
+    else:
+        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x04
+        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x04
     
     header += header1_val.to_bytes(2, byteorder="little")
     header += bytes([
