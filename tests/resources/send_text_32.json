@@ -1,51 +1,29 @@
 {
     "tests": [
         {
-            "name": "letter a, 16px height, cusong",
-            "device_type": 130,
+            "name": "kaas 32x32",
+            "device_type": 138,
             "commande": "send_text",
             "args": {
-                "text": "a",
-                "save_slot": 8,
+                "text": "kaas is",
+                "save_slot": 42,
                 "font": "CUSONG"
             },
-            "expected_data": "31000001002200000042b7053f000801000101005000ffffff0000000000ffffff0000000000001e303e33333b6e000000"
-        },
-        {
-            "name": "\"this is a test\", 16px height, CUSONG",
-            "device_type": 130,
-            "commande": "send_text",
-            "args": {
-                "text": "this is a test",
-                "save_slot": 9,
-                "font": "CUSONG"
-            },
-            "expected_data": "3501000100260100007504f76b00090e000101005000ffffff0000000000ffffff0000000c0c0c3f0c0c0c0c6c3800000000ffffff0000000706063e66666666666700000000ffffff0000001818001c18181818183c00000000ffffff0000000000003e63033e60633e00000000ffffff0000000000000000000000000000000000ffffff0000001818001c18181818183c00000000ffffff0000000000003e63033e60633e00000000ffffff0000000000000000000000000000000000ffffff0000000000001e303e33333b6e00000000ffffff0000000000000000000000000000000000ffffff0000000c0c0c3f0c0c0c0c6c3800000000ffffff0000000000003e63637f03633e00000000ffffff0000000000003e63033e60633e00000000ffffff0000000c0c0c3f0c0c0c0c6c38000000"
-        },
-        {
-            "name": "a 48x24",
-            "device_type": 137,
-            "commande": "send_text",
-            "args": {
-                "text": "a",
-                "save_slot": 8,
-                "font": "CUSONG"
-            },
-            "expected_data": "5300000100440000002f16f413000801000101005000ffffff0000000080ffffff0e18000000000000000000000000000000000000fe03fe07000e000efc0ffe0f070e030e030e030e030e070ffe1dfc180000"
+            "expected_data": "a9000001009a000000f084e40f002907000101005000ffffff0000000000ffffff0000000003020272120a0e122277000000ffffff000000000000001c22302c22326c000000ffffff000000000000001c22302c22326c000000ffffff000000000000007c42023c40423e000000ffffff0000000000000000000000000000000000ffffff0000000c0c00000e08080808083e000000ffffff000000000000007c42023c40423e0000"
         },
         {
             "name": "Wim 64x32",
             "device_type": 138,
             "commande": "send_text",
             "args": {
-                "text": "wim",
+                "text": "Wim",
                 "save_slot": 42,
                 "font": "CUSONG"
             },
             "expected_data": "4f0100010040010000dfb9ec9b006503000101005000ffffff0000000080ffffff14201fe0071fe0071fe0071fe0071fe0071fe0071fe0071fe0071fe0071fe0071fe0079fe7079fe7079fe7079fe707ffff07ffff07ffff07ffff07ffff07ffff07ffff07ffff07ffff07ffff07ffff07ffff07feff01feff0178780078780000000080ffffff1420801f00801f00801f00801f00801f00000000000000000000000000e01f00e01f00e01f00e01f00801f00801f00801f00801f00801f00801f00801f00801f00801f00801f00801f00801f00801f00801f00e07f00e07f00e07f00e07f0000000080ffffff1420000000000000000000000000000000000000000000000000000000feff01feff01ffff07ffff07ffff07ffff079fe7079fe7079fe7079fe7079fe7079fe7079fe7079fe7071fe0071fe0071fe0071fe0071fe0071fe0071fe0071fe007000000"
         },
         {
-            "name": "Wim 64x32",
+            "name": "Paul 64x32",
             "device_type": 138,
             "commande": "send_text",
             "args": {
