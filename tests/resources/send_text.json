@@ -25,7 +25,8 @@
             "device_type": 138,
             "commande": "send_text",
             "args": {
-                "text": "0"
+                "text": "0",
+                "save_slot": 42
             },
             "expected_data": "610000010052000000f4ded790002a01000101005000ffffff0000000002fffffffe1fff7fff7fff7fff7f1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7e1f7eff7fff7fff7fff7ffe1ffe1f0000"
         },

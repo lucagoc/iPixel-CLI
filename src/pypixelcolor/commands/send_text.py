@@ -228,7 +228,7 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
         # Build bytes for this character
-        result += bytes([0x00]) # or 0x80 ?
+        result += bytes([0x00 if char_width <= 8 else 0x02]) # or 0x80 ? or 0x2a ?
         result += color_bytes
         #result += bytes([char_width & 0xFF])
         #result += bytes([text_size & 0xFF])
@@ -305,7 +305,7 @@ def send_text(text: str,
     checks = [
         (int(rainbow_mode), 0, 9, "Rainbow mode"),
         (int(animation), 0, 7, "Animation"),
-        (int(save_slot), 0, 10, "Save slot"),
+        (int(save_slot), 0, 255, "Save slot"),
         (int(speed), 0, 100, "Speed"),
         (len(text), 1, 100, "Text length"),
         (text_size, 1, 128, "Matrix height"),
