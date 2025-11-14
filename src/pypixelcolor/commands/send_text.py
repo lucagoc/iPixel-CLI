@@ -56,6 +56,13 @@ def get_font_path(font_name: str) -> str:
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     fonts_dir = os.path.join(base_dir, "fonts")
     
+    try:
+        font = Font.from_str(font_name)
+        return os.path.join(fonts_dir, font.value + ".ttf")
+    except:
+        pass
+        
+    
     # Check if ttf file exists
     font_file = os.path.join(fonts_dir, f"{font_name}.ttf")
     if os.path.isfile(font_file):
@@ -67,7 +74,7 @@ def get_font_path(font_name: str) -> str:
         return font_folder
     
     # Return default font path
-    default_font = os.path.join(fonts_dir, "1_VCR_OSD_MONO.ttf")
+    default_font = os.path.join(fonts_dir, Font.CUSONG.value + ".ttf")
     logger.warning(f"Font '{font_name}' not found. Using default font at {default_font}.")
     return default_font
 
@@ -157,7 +164,7 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
         # Clamp text_width between min and max values to prevent crash
         # Values tested on 16px height device
         # Might be different for 20px or 24px devices
-        min_width = 9
+        min_width = 1
         max_width = 16
         text_width = int(max(min_width, min(text_width, max_width)))
 
@@ -221,10 +228,10 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
         # Build bytes for this character
-        result += bytes([0x80])
+        result += bytes([0x00]) # or 0x80 ?
         result += color_bytes
-        result += bytes([char_width & 0xFF])
-        result += bytes([text_size & 0xFF])
+        #result += bytes([char_width & 0xFF])
+        #result += bytes([text_size & 0xFF])
         result += char_bytes
 
     return bytes(result)
@@ -234,10 +241,10 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
 def send_text(text: str,
               rainbow_mode: int = 0,
               animation: int = 0,
-              save_slot: int = 1,
+              save_slot: int = 0,
               speed: int = 80,
               color: str = "ffffff",
-              font: Union[Font, str] = Font.FONSUG,
+              font: Union[Font, str] = Font.CUSONG,
               font_offset: tuple[int, int] = (0, 0),
               text_size: Optional[int] = None,
               device_info: Optional[DeviceInfo] = None
@@ -283,6 +290,9 @@ def send_text(text: str,
         raise ValueError("font_offset must be a tuple of two integers (x, y)")
     text_size = int(text_size)
     
+    # debug
+    font_offset_y = -1
+    
     # properties: 3 fixed bytes + animation + speed + rainbow + 3 bytes color + 4 zero bytes
     try:
         color_bytes = bytes.fromhex(color)
@@ -295,7 +305,7 @@ def send_text(text: str,
     checks = [
         (int(rainbow_mode), 0, 9, "Rainbow mode"),
         (int(animation), 0, 7, "Animation"),
-        (int(save_slot), 1, 10, "Save slot"),
+        (int(save_slot), 0, 10, "Save slot"),
         (int(speed), 0, 100, "Speed"),
         (len(text), 1, 100, "Text length"),
         (text_size, 1, 128, "Matrix height"),
@@ -322,8 +332,9 @@ def send_text(text: str,
     
     header = bytearray()
 
-    header1_val = 0x1D + len(text) * (0x06 + text_size * 0x2) # Magic formula
-    header3_val = 0x0E + len(text) * (0x06 + text_size * 0x2)
+    # Magic formulas
+    header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
+    header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
     
     header += header1_val.to_bytes(2, byteorder="little")
     header += bytes([
@@ -389,7 +400,11 @@ def send_text(text: str,
     final_payload = bytearray()
     final_payload += bytes(header)                                  # header
     final_payload += crc.to_bytes(4, byteorder="little")            # checksum
-    final_payload += bytes([int(save_slot) & 0xFF, 0x00])           # save_slot
+    final_payload += bytes([0x00])                                  # Reserved
+    final_payload += bytes([int(save_slot) & 0xFF])                 # save_slot
     final_payload += data_payload                                   # num_chars + properties + characters
+
+    # Debug
+    logger.debug("final_payload (hex): %s", bytes(final_payload).hex())
 
     return single_window_plan("send_text", bytes(final_payload))

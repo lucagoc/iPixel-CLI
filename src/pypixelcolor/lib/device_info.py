@@ -114,7 +114,7 @@ def parse_device_info(response: bytes) -> DeviceInfo:
     
     # Extract device type from byte 4
     device_type_byte = response[4]
-    # device_type_byte = 132 # Force a device for debug
+    # device_type_byte = 129 # Force a device for debug
     
     # Map device type to LED type
     led_type = DEVICE_TYPE_MAP.get(device_type_byte, 0)
