@@ -9,6 +9,7 @@ class Font(Enum):
     
     CUSONG = "0_CUSONG16"
     VCR_OSD_MONO = "1_VCR_OSD_MONO"
+    SIMSUN = "2_SIMSUN"
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return self.value
@@ -29,3 +30,28 @@ class Font(Enum):
             if member.value == val or member.name == val:
                 return member
         raise ValueError(f"Unknown font: {val}")
+
+# Mapping
+FONT_METRICS: dict[Font, dict[int, dict[str, Any]]] = {
+    Font.CUSONG: {
+        16: {
+            "font_size": 16,
+            "offset": (0, -1),
+            "is_16bit": False
+        }
+    },
+    Font.VCR_OSD_MONO: {
+        16: {
+            "font_size": 16,
+            "offset": (0, 0),
+            "is_16bit": True
+        }
+    },
+    Font.SIMSUN: {
+        16: {
+            "font_size": 16,
+            "offset": (0, 0),
+            "is_16bit": False
+        }
+    }
+}

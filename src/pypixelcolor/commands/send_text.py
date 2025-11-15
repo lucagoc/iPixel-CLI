@@ -8,14 +8,14 @@ from logging import getLogger
 from typing import Optional, Union
 
 # Locals
-from ..fonts.font_enum import Font
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.device_info import DeviceInfo
-from ..fonts.font_enum import Font
+from ..fonts.font_enum import Font, FONT_METRICS
 
 logger = getLogger(__name__)
 
 # Helper functions for byte-level transformations
+
 def _reverse_bits_16(n: int) -> int:
     """Reverse bits in a 16-bit integer."""
     n = ((n & 0xFF00) >> 8) | ((n & 0x00FF) << 8)
@@ -24,26 +24,20 @@ def _reverse_bits_16(n: int) -> int:
     n = ((n & 0xAAAA) >> 1) | ((n & 0x5555) << 1)
     return n
 
-def _invert_frames_bytes(data: bytes) -> bytes:
-    """Invert frames by 2-byte chunks (equivalent to previous invert_frames on hex string)."""
-    if len(data) % 2 != 0:
-        raise ValueError("Data length must be multiple of 2 bytes for frame inversion")
-    chunks = [data[i:i+2] for i in range(0, len(data), 2)]
-    chunks.reverse()
-    return b"".join(chunks)
-
-def _switch_endian_bytes(data: bytes) -> bytes:
-    """Reverse the byte order of the data (equivalent to previous switch_endian on hex)."""
-    return data[::-1]
-
 def _logic_reverse_bits_order_bytes(data: bytes) -> bytes:
-    """Reverse bit order in each 16-bit chunk."""
+    """Reverse bit order in each 16-bit chunk.
+    Args:
+        data (bytes): Input byte data.
+    Returns:
+        bytes: Bit-reversed byte data.
+    """
     if len(data) % 2 != 0:
         raise ValueError("Data length must be multiple of 2 bytes for bit reversal")
     out = bytearray()
     for i in range(0, len(data), 2):
         chunk = data[i:i+2]
-        value = int.from_bytes(chunk, byteorder="big")
+        # Read as little-endian to avoid double reversal
+        value = int.from_bytes(chunk, byteorder="little")
         rev = _reverse_bits_16(value)
         out += rev.to_bytes(2, byteorder="big")
     return bytes(out)
@@ -134,7 +128,7 @@ def charimg_to_hex_string(img: Image.Image) -> tuple[bytes, int]:
     return bytes(data_bytes), char_width
 
 
-def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], font: str):
+def char_to_hex(character: str, char_size:int, font_offset: tuple[int, int], font: str, font_size: int) -> tuple[Optional[bytes], int]:
     """
     Convert a character to its hexadecimal representation.
     
@@ -150,17 +144,11 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
     font_path = get_font_path(font)
 
     try:
-        
-        # PIL
-        font_offset_x, font_offset_y = font_offset 
-        font_offset_y += -1
-        font_offset = (font_offset_x, font_offset_y)
-        
         # Generate image with dynamic width
         # First, create a temporary large image to measure text in grayscale
-        temp_img = Image.new('L', (100, text_size), 0)
+        temp_img = Image.new('L', (100, char_size), 0)
         temp_draw = ImageDraw.Draw(temp_img)
-        font_obj = ImageFont.truetype(font_path, text_size)
+        font_obj = ImageFont.truetype(font_path, font_size)
         
         # Get text bounding box
         bbox = temp_draw.textbbox((0, 0), character, font=font_obj)
@@ -174,7 +162,7 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
         text_width = int(max(min_width, min(text_width, max_width)))
 
         # Create final image in grayscale mode for pixel-perfect rendering
-        img = Image.new('L', (int(text_width), int(text_size)), 0)
+        img = Image.new('L', (int(text_width), int(char_size)), 0)
         d = ImageDraw.Draw(img)
         
         # Draw text in white (255) for pixel-perfect rendering
@@ -193,7 +181,7 @@ def char_to_hex(character: str, text_size:int, font_offset: tuple[int, int], fon
         return None, 0
 
 
-def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: tuple[int, int]) -> bytes:
+def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: tuple[int, int], font_size: int) -> bytes:
     """Encode text to be displayed on the device.
 
     Returns raw bytes. Each character block is composed as:
@@ -223,20 +211,19 @@ def _encode_text(text: str, text_size: int, color: str, font: str, font_offset: 
 
     # Build each character block
     for char in text:
-        char_bytes, char_width = char_to_hex(char, text_size, font=font, font_offset=font_offset)
+        char_bytes, char_width = char_to_hex(char, text_size, font=font, font_offset=font_offset, font_size=font_size)
         if not char_bytes:
             continue
 
         # Apply byte-level transformations
-        char_bytes = _invert_frames_bytes(char_bytes)
-        char_bytes = _switch_endian_bytes(char_bytes)
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
         # Build bytes for this character
-        result += bytes([0x00 if text_size <= 16 else 0x80]) # or 0x80 ? or 0x2a ?
+        result += bytes([0x00 if char_width <= 8 else 0x80]) # or 0x80 ? or 0x2a ?
         result += color_bytes
-        #result += bytes([char_width & 0xFF])
-        #result += bytes([text_size & 0xFF])
+        if char_width > 8:
+            result += bytes([char_width & 0xFF])
+            result += bytes([text_size & 0xFF])
         result += char_bytes
 
     return bytes(result)
@@ -250,8 +237,9 @@ def send_text(text: str,
               speed: int = 80,
               color: str = "ffffff",
               font: Union[Font, str] = Font.CUSONG,
-              font_offset: tuple[int, int] = (0, 0),
-              text_size: Optional[int] = None,
+              font_size: Optional[int] = None,
+              font_offset: Optional[Optional[tuple[int, int]]] = None,
+              char_height: Optional[int] = None,
               device_info: Optional[DeviceInfo] = None
               ):
     """
@@ -278,22 +266,34 @@ def send_text(text: str,
     """
     
     # Auto-detect matrix_height from device_info if available
-    if text_size is None:
+    if char_height is None:
         if device_info is not None:
-            text_size = device_info.height
-            logger.debug(f"Auto-detected matrix height from device: {text_size}")
+            char_height = device_info.height
+            logger.debug(f"Auto-detected matrix height from device: {char_height}")
         else:
-            text_size = 16  # Default fallback
+            char_height = 16  # Default fallback
             logger.warning("Using default matrix height: 16")
-    
+        
+        # Get offset from FONT_METRICS if available
+        try:
+            font_enum = Font.from_str(font) if not isinstance(font, Font) else font
+            font_metrics = FONT_METRICS.get(font_enum, {})
+            if char_height in font_metrics:
+                font_offset = font_metrics[char_height]["offset"]
+                font_size = font_metrics[char_height]["font_size"]
+        except Exception:
+            pass
+        
     # Normalize font_offset to two integers (x, y)
     try:
-        font_offset_x, font_offset_y = font_offset
+        font_offset_x, font_offset_y = font_offset if font_offset is not None else (0, 0)
         font_offset_x = int(font_offset_x)
         font_offset_y = int(font_offset_y)
     except Exception:
         raise ValueError("font_offset must be a tuple of two integers (x, y)")
-    text_size = int(text_size)
+    char_height = int(char_height)
+    if font_size is None:
+        font_size = char_height
     
     # properties: 3 fixed bytes + animation + speed + rainbow + 3 bytes color + 4 zero bytes
     try:
@@ -310,7 +310,7 @@ def send_text(text: str,
         (int(save_slot), 0, 255, "Save slot"),
         (int(speed), 0, 100, "Speed"),
         (len(text), 1, 100, "Text length"),
-        (text_size, 1, 128, "Matrix height"),
+        (char_height, 1, 128, "Char height"),
     ]
     for param, min_val, max_val, name in checks:
         if not (min_val <= param <= max_val):
@@ -334,19 +334,26 @@ def send_text(text: str,
     
     header = bytearray()
 
+    # Determine if the font entry declares 16-bit metrics.
+    font_16bit = False
+    font_enum = Font.from_str(font_str) if not isinstance(font, Font) else font
+    font_metrics = FONT_METRICS.get(font_enum, {})
+    if char_height in font_metrics:
+        font_16bit = font_metrics[char_height]["is_16bit"]
+                
     # Magic formulas
-    if text_size <= 16:
-        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
-        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2))
-    elif text_size <= 20:
-        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x01
-        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x01
-    elif text_size <= 24:
-        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x02
-        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x02
+    if char_height <= 16:
+        header1_val = 29 + len(text) * (20 + (18 if font_16bit else 0))
+        header3_val = 14 + len(text) * (20 + (18 if font_16bit else 0))
+    elif char_height <= 20:
+        header1_val = 0x1D + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x01
+        header3_val = 0x0E + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x01
+    elif char_height <= 24:
+        header1_val = 0x1D + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x02
+        header3_val = 0x0E + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x02
     else:
-        header1_val = 0x1D + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x04
-        header3_val = 0x0E + len(text) * (0x04 + text_size * (0x1 if text_size <= 16 else 0x2)) + 0x04
+        header1_val = 0x1D + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x02
+        header3_val = 0x0E + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x02
     
     header += header1_val.to_bytes(2, byteorder="little")
     header += bytes([
@@ -389,10 +396,11 @@ def send_text(text: str,
 
     characters_bytes = _encode_text(
         text, 
-        text_size, 
+        char_height, 
         color, 
         font_str, 
-        (font_offset_x, font_offset_y)
+        (font_offset_x, font_offset_y),
+        font_size
     )
     
     # number_of_characters: single byte
