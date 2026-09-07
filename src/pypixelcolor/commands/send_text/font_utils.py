@@ -1,66 +1,51 @@
 # -*- coding: utf-8 -*-
-"""Font configuration and device-specific utilities."""
+"""Font resolution and device-specific utilities."""
 
-import os
-import re
+from pathlib import Path
 from typing import Union
 from logging import getLogger
-from pathlib import Path
 
 from ...lib.device_info import DeviceInfo
 from ...lib.font_config import FontConfig, BUILTIN_FONTS
-from ...lib.font_calibrator import download_google_font, get_fonts_cache_dir
 
 logger = getLogger(__name__)
 
 
-def resolve_font_config(font: Union[str, FontConfig]) -> FontConfig:
+def resolve_font_config(font: Union[str, Path, FontConfig]) -> FontConfig:
     """Resolve a font specification to a FontConfig object.
-    
+
     Args:
-        font: Either a built-in font name (str), a Google Font name (e.g. 'Silkscreen'),
-              a local file path (str), or a FontConfig object.
-        
+        font: Either a built-in font name (str), a local file path (str/Path),
+              or an existing FontConfig instance.
+
     Returns:
-        FontConfig object
-        
+        FontConfig instance.
+
     Raises:
-        ValueError: If font argument type is invalid
-        FileNotFoundError: If font cannot be found locally or on online.
+        ValueError: If font argument type is invalid.
+        FileNotFoundError: If the font file or built-in font is not found.
     """
     if isinstance(font, FontConfig):
         return font
-    
-    if not isinstance(font, str):
-        raise ValueError(f"Font must be a string or FontConfig, got {type(font)}")
 
-    cleaned_font = font.strip()
+    if isinstance(font, Path):
+        font_str = str(font)
+    elif isinstance(font, str):
+        font_str = font.strip()
+    else:
+        raise ValueError(f"Font must be a string, Path, or FontConfig, got {type(font)}")
 
-    # 1. Try built-in fonts first (UNIFONT)
-    if cleaned_font.upper() in BUILTIN_FONTS:
-        return BUILTIN_FONTS[cleaned_font.upper()]
+    # 1. Check built-in fonts (case-insensitive)
+    if font_str.upper() in BUILTIN_FONTS:
+        return FontConfig.builtin(font_str.upper())
 
-    # 2. Try loading as direct file path
-    if os.path.exists(cleaned_font):
-        return FontConfig.from_file(cleaned_font)
-
-    # 4. Check if already cached in fonts cache dir
-    fonts_dir = get_fonts_cache_dir()
-    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', cleaned_font)
-    for ext in (".ttf", ".otf"):
-        cached_candidate = fonts_dir / f"{safe_name}{ext}"
-        if cached_candidate.exists() and cached_candidate.stat().st_size > 0:
-            return FontConfig.from_file(str(cached_candidate), name=cleaned_font)
-
-    # 5. Automatically search and download from Google Fonts if not found locally
-    try:
-        local_path = download_google_font(cleaned_font)
-        return FontConfig.from_file(str(local_path), name=cleaned_font)
-    except Exception as e:
-        logger.debug(f"Font '{cleaned_font}' not found on Google Fonts: {e}")
+    # 2. Check local file path
+    path = Path(font_str).expanduser()
+    if path.is_file():
+        return FontConfig.from_file(path)
 
     raise FileNotFoundError(
-        f"Font '{font}' not found. Available built-in: UNIFONT."
+        f"Font '{font}' not found. Available built-in fonts: {list(BUILTIN_FONTS.keys())}"
     )
 
 
@@ -69,11 +54,11 @@ def get_char_height_from_device(device_info: DeviceInfo) -> int:
 
     Args:
         device_info (DeviceInfo): Device information with width and height.
-        
+
     Returns:
-        int: The recommended character height (16 or 32).
+        int: The recommended character height (16 or device height).
     """
     if device_info.height <= 20:
         return 16
-    else:
-        return device_info.height
+    return device_info.height
+

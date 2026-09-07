@@ -39,8 +39,8 @@ You can also use inline color tags and specify custom parameters or fonts:
 # Send multi-colored text
 pypixelcolor -a <MAC_ADDRESS> -c send_text "[#ff0000]Hello[/] [#00ff00]pypixelcolor[/]"
 
-# Send text using a custom Font
-pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello" font="Press Start 2P" animation=1 speed=100
+# Send text using a custom Font file
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello" font="/path/to/font.ttf" animation=1 speed=100
 ```
 
 You can also control timers or update scoreboard scores:
@@ -56,16 +56,6 @@ pypixelcolor -a <MAC_ADDRESS> -c set_scores score_p1=10 score_p2=7
 ```
 
 For more information on available commands, refer to the [Commands](../commands/content.md) page.
-
-## Interactive Font Configuration TUI
-
-`pypixelcolor` includes a built-in terminal user interface (TUI) to preview and calibrate fonts for the commmand `send_text`:
-
-```bash
-pypixelcolor --font-config
-```
-
-This interface allows you to preview rendering across 16px, 24px, and 32px heights, adjust font sizes, offsets, pixel threshold, toggle variable-width mode, and save preferences.
 
 ## Logging and Troubleshooting
 

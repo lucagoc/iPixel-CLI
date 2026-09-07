@@ -52,8 +52,5 @@ pypixelcolor -a <MAC_ADDRESS> -c send_text "[#ff0000]Red[/] [#00ff00]Green[/] [#
 The `font` argument supports multiple formats:
 
 - **Built-in Font**: `"UNIFONT"` (default GNU Unifont with comprehensive Unicode and CJK glyph support).
-- **Google Fonts**: Specify any [Google Font](https://fonts.google.com/) name directly (e.g. `font="Silkscreen"`, `font="Press Start 2P"`). It will be downloaded automatically and calibrated on first run.
-- **Local Font**: Provide a relative or absolute path to a `.ttf` or `.otf` file (e.g. `font="./Minecraft.ttf"`).
-- **FontConfig**: Pass a pre-configured `FontConfig` object.
-
-You can also calibrate and adjust fonts interactively using `pypixelcolor --font-config`.
+- **Local Font Path**: Provide a relative or absolute path to a `.ttf` or `.otf` file (e.g. `font="./Minecraft.ttf"`).
+- **FontConfig**: Pass a `FontConfig` object (e.g. `FontConfig.from_file("./Minecraft.ttf", font_size=16)`).

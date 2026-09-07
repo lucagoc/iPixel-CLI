@@ -55,13 +55,12 @@ def test_parse_colored_text():
 
 def test_encode_text_with_char_colors():
     font = FontConfig.builtin("UNIFONT")
-    metrics = font.get_metrics(16)
     context = RenderContext(
         char_height=16,
         font_path=font.path,
-        font_size=int(metrics["font_size"]),
-        font_offset=tuple(metrics["offset"]),
-        pixel_threshold=int(metrics["pixel_threshold"]),
+        font_size=16,
+        font_offset=font.offset,
+        pixel_threshold=font.pixel_threshold,
     )
 
     char_colors = ["ff0000", "00ff00"]
@@ -83,13 +82,12 @@ def test_encode_text_with_char_colors():
 
 def test_encode_text_with_char_colors_reversed():
     font = FontConfig.builtin("UNIFONT")
-    metrics = font.get_metrics(16)
     context = RenderContext(
         char_height=16,
         font_path=font.path,
-        font_size=int(metrics["font_size"]),
-        font_offset=tuple(metrics["offset"]),
-        pixel_threshold=int(metrics["pixel_threshold"]),
+        font_size=16,
+        font_offset=font.offset,
+        pixel_threshold=font.pixel_threshold,
     )
 
     char_colors = ["ff0000", "00ff00"]  # 'A': red, 'B': green

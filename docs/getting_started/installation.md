@@ -22,15 +22,15 @@ pip install pypixelcolor
 
 You can install optional features depending on your needs:
 
-* **Font calibration TUI (`rich` & `textual`)**:
+* **Enhanced CLI**:
   ```bash
-  pip install "pypixelcolor[tui]"
+  pip install "pypixelcolor[cli]"
   ```
-* **WebSocket server bridge (`websockets`)**:
+* **WebSocket server bridge**:
   ```bash
   pip install "pypixelcolor[server]"
   ```
-* **HEIF/HEIC image format support (`pillow-heif`)**:
+* **HEIF/HEIC image format support**:
   ```bash
   pip install "pypixelcolor[heif]"
   ```

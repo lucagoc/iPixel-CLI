@@ -122,21 +122,29 @@ def send_text(text: str,
             raise ValueError("char_height must be specified if device_info is not provided")
 
     char_height = int(char_height)
-    metrics = font_config.get_metrics(char_height)
 
     # 2. Resolve rendering parameters into a RenderContext
-    resolved_font_size = int(metrics["font_size"]) if font_size is None else int(font_size)
-
-    if font_offset is None:
-        resolved_offset = tuple(metrics["offset"])
-    elif isinstance(font_offset, str):
-        cleaned = font_offset.strip("()[] ")
-        parts = [int(p.strip()) for p in cleaned.split(",")]
-        resolved_offset = (parts[0], parts[1])
+    if font_size is not None:
+        resolved_font_size = int(font_size)
+    elif font_config.font_size is not None:
+        resolved_font_size = int(font_config.font_size)
     else:
-        resolved_offset = (int(font_offset[0]), int(font_offset[1]))
+        resolved_font_size = char_height
 
-    resolved_threshold = int(metrics["pixel_threshold"]) if pixel_threshold is None else int(pixel_threshold)
+    if font_offset is not None:
+        if isinstance(font_offset, str):
+            cleaned = font_offset.strip("()[] ")
+            parts = [int(p.strip()) for p in cleaned.split(",")]
+            resolved_offset = (parts[0], parts[1])
+        else:
+            resolved_offset = (int(font_offset[0]), int(font_offset[1]))
+    else:
+        resolved_offset = font_config.offset
+
+    if pixel_threshold is not None:
+        resolved_threshold = int(pixel_threshold)
+    else:
+        resolved_threshold = font_config.pixel_threshold
 
     context = RenderContext(
         char_height=char_height,
@@ -150,7 +158,7 @@ def send_text(text: str,
     if var_width is not None:
         resolved_var_width = var_width.lower() in ("true", "1", "yes", "y") if isinstance(var_width, str) else bool(var_width)
     else:
-        resolved_var_width = bool(metrics.get("var_width", False))
+        resolved_var_width = bool(font_config.var_width)
 
     # 4. Handle inline color tags
     if resolved_var_width:

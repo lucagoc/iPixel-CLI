@@ -2,109 +2,82 @@
 """Font configuration and management."""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 import os
-from pathlib import Path
 
-from .font_calibrator import get_cached_metrics, calculate_font_metrics
+UNIFONT_PATH = str(Path(__file__).resolve().parent.parent / "fonts" / "unifont.otf")
 
-UNIFONT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts", "unifont.otf")
+BUILTIN_FONTS: dict[str, str] = {
+    "UNIFONT": UNIFONT_PATH,
+}
 
 
 @dataclass(frozen=True)
 class FontConfig:
-    """Configuration for a font including metrics and rendering parameters."""
-    
+    """Configuration for a font.
+
+    Attributes:
+        name: Font identifier or display name.
+        path: Path to the font file (.ttf / .otf).
+        font_size: Optional font size override (defaults to char_height if None).
+        offset: Rendering (x, y) offset tuple. Defaults to (0, 0).
+        pixel_threshold: Binarization threshold (0-255). Defaults to 128.
+        var_width: Whether variable width rendering mode is enabled. Defaults to False.
+    """
+
     name: str
     path: str
-    metrics: dict[int, dict]  # {height: {font_size, offset, pixel_threshold}}
-    
-    def get_metrics(self, height: int) -> dict:
-        """Get metrics for a specific height, computing on the fly if needed."""
-        if height in self.metrics:
-            return self.metrics[height]
-        # Fallback to closest pre-computed height or compute directly
-        try:
-            return calculate_font_metrics(self.path, height)
-        except Exception:
-            closest = min(self.metrics.keys(), key=lambda h: abs(h - height))
-            return self.metrics[closest]
-    
+    font_size: Optional[int] = None
+    offset: tuple[int, int] = (0, 0)
+    pixel_threshold: int = 128
+    var_width: bool = False
+
     @classmethod
-    def builtin(cls, name: str = "UNIFONT") -> "FontConfig":
-        """Load the built-in font by name.
-        
+    def builtin(cls, name: str = "UNIFONT", **kwargs) -> "FontConfig":
+        """Load a built-in font by name.
+
         Args:
-            name: Name of the built-in font (UNIFONT)
-            
+            name: Name of the built-in font (e.g. UNIFONT).
+            **kwargs: Optional configuration overrides (font_size, offset, pixel_threshold, var_width).
+
         Returns:
-            FontConfig for the requested built-in font
-            
+            FontConfig instance.
+
         Raises:
-            ValueError: If font name is not recognized
+            ValueError: If font name is not recognized.
         """
-        if name.upper() != "UNIFONT":
-            raise ValueError(f"Unknown built-in font: {name}. Available: UNIFONT")
-        return cls.from_file(UNIFONT_PATH, name="UNIFONT")
-    
+        name_upper = name.upper()
+        if name_upper not in BUILTIN_FONTS:
+            raise ValueError(f"Unknown built-in font: {name}. Available: {list(BUILTIN_FONTS.keys())}")
+        return cls(name=name_upper, path=BUILTIN_FONTS[name_upper], **kwargs)
+
     @classmethod
-    def from_file(cls, path: str, name: Optional[str] = None) -> "FontConfig":
-        """Load a font from file path, automatically calculating metrics if not cached.
-        
+    def from_file(cls, path: str | Path, name: Optional[str] = None, **kwargs) -> "FontConfig":
+        """Load a font from a local file path.
+
         Args:
-            path: Path to .ttf or .otf file
-            name: Optional display name
-                
+            path: Path to .ttf or .otf file.
+            name: Optional display name (defaults to filename stem).
+            **kwargs: Optional configuration overrides (font_size, offset, pixel_threshold, var_width).
+
         Returns:
-            FontConfig for the font
-            
+            FontConfig instance.
+
         Raises:
-            FileNotFoundError: If font file does not exist
+            FileNotFoundError: If the font file does not exist.
         """
-        if not os.path.exists(path):
+        p = Path(path).expanduser().resolve()
+        if not p.is_file():
             raise FileNotFoundError(f"Font file not found: {path}")
-        
-        font_path = Path(path).resolve()
-        font_name = name or font_path.stem
-        metrics = get_cached_metrics(str(font_path), heights=(16, 24, 32), font_name=font_name)
-        
-        return cls(name=font_name, path=str(font_path), metrics=metrics)
-
-
-def _get_builtin_fonts() -> dict[str, FontConfig]:
-    """Lazy dictionary of built-in fonts."""
-    if os.path.exists(UNIFONT_PATH):
-        try:
-            return {"UNIFONT": FontConfig.from_file(UNIFONT_PATH, name="UNIFONT")}
-        except Exception:
-            pass
-    return {}
-
-
-class _BuiltinFontsProxy(dict):
-    """Proxy dict to load built-in fonts on access."""
-    def __getitem__(self, item):
-        if item.upper() == "UNIFONT":
-            return FontConfig.builtin("UNIFONT")
-        raise KeyError(f"Unknown built-in font: {item}. Available: UNIFONT")
-
-    def __contains__(self, item):
-        return isinstance(item, str) and item.upper() == "UNIFONT"
-
-    def keys(self):
-        return ["UNIFONT"]
-
-    def items(self):
-        return [("UNIFONT", self["UNIFONT"])]
-
-
-BUILTIN_FONTS: dict[str, FontConfig] = _BuiltinFontsProxy()
+        return cls(name=name or p.stem, path=str(p), **kwargs)
 
 
 def list_fonts() -> list[str]:
     """List all available built-in fonts.
-    
+
     Returns:
-        List of built-in font names
+        List of built-in font names.
     """
-    return ["UNIFONT"]
+    return list(BUILTIN_FONTS.keys())
+

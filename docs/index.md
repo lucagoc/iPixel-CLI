@@ -16,7 +16,6 @@
 - 🖼️ **Send images**: Display images and GIFs on the matrix.
 - ⚙️ **Control settings**: Adjust brightness, orientation, and power.
 - ⏰ **Clock, Timer & Scoreboard**: Display clock faces, control timers, and scoreboard.
-- 🔤 **Font Calibration TUI**: Built-in interactive terminal user interface to preview and fine-tune fonts across matrix sizes.
 - 🐍 **Scriptable**: Full Python library support with synchronous and asynchronous APIs.
 - 🖥️ **CLI**: Feature-rich command-line interface with interactive status and multi-command chaining.
 

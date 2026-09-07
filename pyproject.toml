@@ -28,9 +28,8 @@ Homepage = "https://github.com/lucagoc/pypixelcolor"
 Issues = "https://github.com/lucagoc/pypixelcolor/issues"
 
 [project.optional-dependencies]
-tui = [
+cli = [
   "rich",
-  "textual>=0.40.0",
 ]
 server = [
   "websockets",
@@ -40,7 +39,6 @@ heif = [
 ]
 all = [
   "rich",
-  "textual>=0.40.0",
   "websockets",
   "pillow-heif>=1.0.0",
 ]
@@ -50,7 +48,6 @@ dev = [
   "zensical",
   "mkdocstrings[python]",
   "rich",
-  "textual>=0.40.0",
   "websockets",
   "pillow-heif>=1.0.0",
 ]

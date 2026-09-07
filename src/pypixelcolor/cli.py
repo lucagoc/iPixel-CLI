@@ -127,7 +127,6 @@ def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description=f"pypixelcolor - CLI v{VERSION}")
     parser.add_argument("--scan", action="store_true", help="Scan for Bluetooth devices")
-    parser.add_argument("--font-config", action="store_true", help="Launch interactive TUI to preview and calibrate fonts")
     parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}", help="Show the version and exit")
     parser.add_argument(
         "-c", "--command", action="append", nargs="+", metavar="COMMAND PARAMS",
@@ -141,18 +140,6 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-
-    if args.font_config:
-        try:
-            from .tools.font_tui import run_font_tui
-            run_font_tui()
-        except ImportError as e:
-            logger.error(
-                f"Interactive font configuration requires textual and rich ({e}).\n"
-                "Install them with: pip install 'pypixelcolor[tui]'"
-            )
-            sys.exit(1)
-        return
     
     loglevel_specified = args.loglevel is not None
     is_interactive = not loglevel_specified and sys.stdout.isatty() and RICH_AVAILABLE

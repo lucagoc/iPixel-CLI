@@ -29,15 +29,13 @@ def test_list_fonts():
 
 
 def test_builtin_font_config():
-    """Verify FontConfig.builtin loads UNIFONT with valid metrics."""
+    """Verify FontConfig.builtin loads UNIFONT with valid default configuration."""
     font = FontConfig.builtin("UNIFONT")
     assert font.name == "UNIFONT"
-    assert 16 in font.metrics
-    assert 32 in font.metrics
-    metrics_16 = font.get_metrics(16)
-    assert "font_size" in metrics_16
-    assert "offset" in metrics_16
-    assert "pixel_threshold" in metrics_16
+    assert font.path.endswith("unifont.otf")
+    assert font.offset == (0, 0)
+    assert font.pixel_threshold == 128
+    assert font.var_width is False
 
 
 def test_unknown_font_raises():
@@ -113,9 +111,7 @@ def test_send_text_var_width_from_config(mock_device):
     fc = FontConfig(
         name="CUSTOM_VAR",
         path=UNIFONT_PATH,
-        metrics={
-            16: {"font_size": 16, "offset": (0, 0), "pixel_threshold": 30, "var_width": True}
-        }
+        var_width=True,
     )
 
     plan = send_text("HELLO", font=fc, device_info=mock_device)
@@ -148,7 +144,7 @@ def test_send_text_var_width_override(mock_device, monkeypatch):
     fc_fixed = FontConfig(
         name="FIXED",
         path=UNIFONT_PATH,
-        metrics={16: {"font_size": 16, "offset": (0, 0), "pixel_threshold": 30, "var_width": False}}
+        var_width=False,
     )
     called_funcs.clear()
     send_text("HI", font=fc_fixed, var_width=True, device_info=mock_device)
@@ -158,7 +154,7 @@ def test_send_text_var_width_override(mock_device, monkeypatch):
     fc_var = FontConfig(
         name="VAR",
         path=UNIFONT_PATH,
-        metrics={16: {"font_size": 16, "offset": (0, 0), "pixel_threshold": 30, "var_width": True}}
+        var_width=True,
     )
     called_funcs.clear()
     send_text("HI", font=fc_var, var_width=False, device_info=mock_device)
