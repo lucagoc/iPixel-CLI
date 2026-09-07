@@ -108,6 +108,22 @@ def _resize_and_crop_image(img: Image.Image, target_width: int, target_height: i
     return img_cropped
 
 
+def _flatten_transparency_to_black(img: Image.Image, background_color: tuple = (0, 0, 0)) -> Image.Image:
+    """Replace any transparency in an image with solid black, returning an opaque RGB image.
+
+    Args:
+        img: PIL Image object, any mode.
+        background_color: RGB tuple to composite onto (default: black).
+
+    Returns:
+        An opaque 'RGB' PIL Image with all transparency replaced by background_color.
+    """
+    rgba = img.convert('RGBA')
+    background = Image.new('RGBA', rgba.size, background_color + (255,))
+    flattened = Image.alpha_composite(background, rgba)
+    return flattened.convert('RGB')
+
+
 def _resize_and_fit_image(img: Image.Image, target_width: int, target_height: int, background_color: tuple = (0, 0, 0)) -> Image.Image:
     """Resize and fit image to target dimensions while preserving aspect ratio (with padding).
     
@@ -135,21 +151,14 @@ def _resize_and_fit_image(img: Image.Image, target_width: int, target_height: in
     
     # Resize with aspect ratio preserved
     img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-    
-    # Create new image with target size and background color
-    # Use same mode as resized image to preserve palette/transparency
-    if img_resized.mode in ('P', 'PA'):
-        new_img = Image.new('P', (target_width, target_height))
-        # Set palette from original image
-        palette = img_resized.getpalette()
-        if palette is not None:
-            new_img.putpalette(palette)
-    elif img_resized.mode in ('RGBA', 'LA'):
-        new_img = Image.new('RGBA', (target_width, target_height), background_color + (255,))
-    else:
-        new_img = Image.new('RGB', (target_width, target_height), background_color)
-    
-    # Calculate paste coordinates to center the image
+
+    # Ensure a plain opaque RGB image
+    if img_resized.mode != 'RGB':
+        img_resized = img_resized.convert('RGB')
+
+    new_img = Image.new('RGB', (target_width, target_height), background_color)
+
+    # Calculate paste coordinates to center the image.
     paste_x = (target_width - new_width) // 2
     paste_y = (target_height - new_height) // 2
     
@@ -207,25 +216,22 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         for frame in ImageSequence.Iterator(img):
             f = frame.copy()
 
+            # Flatten this frame's transparency to solid black before resizing.
+            flattened = _flatten_transparency_to_black(f)
+
             # Resize frame if requested
             if needs_resize:
                 if fit_mode == ResizeMethod.FIT:
-                    processed = _resize_and_fit_image(f, target_width, target_height)
+                    processed = _resize_and_fit_image(flattened, target_width, target_height)
                 elif fit_mode == ResizeMethod.CROP:
-                    processed = _resize_and_crop_image(f, target_width, target_height)
+                    processed = _resize_and_crop_image(flattened, target_width, target_height)
                 else:
                     raise ValueError(f"Unknown fit_mode: {fit_mode}")
             else:
-                processed = f
+                processed = flattened
 
-            # Convert to palette mode ('P') for GIF compatibility. If the
-            # frame has transparency, convert via RGBA to preserve alpha.
-            if processed.mode in ('P', 'PA'):
-                pframe = processed
-            elif processed.mode in ('RGBA', 'LA') or 'transparency' in f.info:
-                pframe = processed.convert('P', palette=Palette.ADAPTIVE, colors=256)
-            else:
-                pframe = processed.convert('P', palette=Palette.ADAPTIVE, colors=256)
+            # Convert to palette mode ('P') for GIF compatibility
+            pframe = processed.convert('P', palette=Palette.ADAPTIVE, colors=256)
 
             frames.append(pframe)
 
@@ -278,27 +284,23 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         return output.getvalue()
     else:
         # Handle static image (PNG)
+        flattened = _flatten_transparency_to_black(img)
         if needs_resize:
             if fit_mode == ResizeMethod.FIT:
-                resized_img = _resize_and_fit_image(img, target_width, target_height)
+                resized_img = _resize_and_fit_image(flattened, target_width, target_height)
             else:
-                resized_img = _resize_and_crop_image(img, target_width, target_height)
+                resized_img = _resize_and_crop_image(flattened, target_width, target_height)
         else:
-            resized_img = img
-        # Convert to RGB to remove palette (P mode) and ensure compatibility
-        resized_img = resized_img.convert('RGB')
+            resized_img = flattened
+        # Already RGB from the flatten step, but keep this as a safety net.
+        #resized_img = resized_img.convert('RGB')
         output = BytesIO()
         resized_img.save(output, format='PNG')
         
         return output.getvalue()
 
 def _process_loaded_bytes(file_bytes: bytes, extension: str) -> tuple[bytes, bool]:
-    """Process raw file bytes according to extension and return (bytes, is_gif).
-
-    This centralizes conversion logic used by both file-based and hex-based
-    loaders. If the extension indicates a format that needs conversion (JPEG,
-    WEBP, HEIC/HEIF, etc.) we convert it to PNG and return the PNG bytes.
-    """
+    # Process raw file bytes according to extension and return (bytes, is_gif).
     ext = extension.lower()
     is_gif = ext == ".gif"
 
@@ -330,6 +332,8 @@ def _build_send_plan(file_bytes: bytes, is_gif: bool, plan_name: str = "send_ima
     size_bytes = _frame_size_bytes(len(file_bytes), 8)  # 4 bytes little-endian
     crc_bytes = _crc32_le(file_bytes)  # 4 bytes little-endian
     payload = file_bytes
+
+    logger.info(f"Sending {len(file_bytes) / 1024:.2f} KB")
 
     windows = []
     window_size = 12 * 1024
