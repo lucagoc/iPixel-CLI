@@ -2033,7 +2033,15 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
-<span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
               <span class="n">rainbow_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
               <span class="n">animation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
               <span class="n">save_slot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -2081,21 +2089,29 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"char_height must be specified if device_info is not provided"</span><span class="p">)</span>
 
     <span class="n">char_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">char_height</span><span class="p">)</span>
-    <span class="n">metrics</span> <span class="o">=</span> <span class="n">font_config</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">(</span><span class="n">char_height</span><span class="p">)</span>
 
     <span class="c1"># 2. Resolve rendering parameters into a RenderContext</span>
-    <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s2">"font_size"</span><span class="p">])</span> <span class="k">if</span> <span class="n">font_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_size</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">font_offset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">resolved_offset</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s2">"offset"</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">font_offset</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">cleaned</span> <span class="o">=</span> <span class="n">font_offset</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"()[] "</span><span class="p">)</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)]</span>
-        <span class="n">resolved_offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_size</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">font_config</span><span class="o">.</span><span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_config</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">resolved_offset</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">font_offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="n">char_height</span>
 
-    <span class="n">resolved_threshold</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s2">"pixel_threshold"</span><span class="p">])</span> <span class="k">if</span> <span class="n">pixel_threshold</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">pixel_threshold</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">font_offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">font_offset</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">cleaned</span> <span class="o">=</span> <span class="n">font_offset</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"()[] "</span><span class="p">)</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)]</span>
+            <span class="n">resolved_offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">resolved_offset</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">font_offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">resolved_offset</span> <span class="o">=</span> <span class="n">font_config</span><span class="o">.</span><span class="n">offset</span>
+
+    <span class="k">if</span> <span class="n">pixel_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">resolved_threshold</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pixel_threshold</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">resolved_threshold</span> <span class="o">=</span> <span class="n">font_config</span><span class="o">.</span><span class="n">pixel_threshold</span>
 
     <span class="n">context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span>
         <span class="n">char_height</span><span class="o">=</span><span class="n">char_height</span><span class="p">,</span>
@@ -2109,7 +2125,7 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
     <span class="k">if</span> <span class="n">var_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">resolved_var_width</span> <span class="o">=</span> <span class="n">var_width</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"true"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">,</span> <span class="s2">"yes"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var_width</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">var_width</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">resolved_var_width</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"var_width"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="n">resolved_var_width</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">font_config</span><span class="o">.</span><span class="n">var_width</span><span class="p">)</span>
 
     <span class="c1"># 4. Handle inline color tags</span>
     <span class="k">if</span> <span class="n">resolved_var_width</span><span class="p">:</span>
@@ -2188,11 +2204,9 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <p>The <code>font</code> argument supports multiple formats:</p>
 <ul>
 <li><strong>Built-in Font</strong>: <code>"UNIFONT"</code> (default GNU Unifont with comprehensive Unicode and CJK glyph support).</li>
-<li><strong>Google Fonts</strong>: Specify any <a href="https://fonts.google.com/">Google Font</a> name directly (e.g. <code>font="Silkscreen"</code>, <code>font="Press Start 2P"</code>). It will be downloaded automatically and calibrated on first run.</li>
-<li><strong>Local Font</strong>: Provide a relative or absolute path to a <code>.ttf</code> or <code>.otf</code> file (e.g. <code>font="./Minecraft.ttf"</code>).</li>
-<li><strong>FontConfig</strong>: Pass a pre-configured <code>FontConfig</code> object.</li>
+<li><strong>Local Font Path</strong>: Provide a relative or absolute path to a <code>.ttf</code> or <code>.otf</code> file (e.g. <code>font="./Minecraft.ttf"</code>).</li>
+<li><strong>FontConfig</strong>: Pass a <code>FontConfig</code> object (e.g. <code>FontConfig.from_file("./Minecraft.ttf", font_size=16)</code>).</li>
 </ul>
-<p>You can also calibrate and adjust fonts interactively using <code>pypixelcolor --font-config</code>.</p>
 
 
 

@@ -566,17 +566,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interactive-font-configuration-tui" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Interactive Font Configuration TUI
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#logging-and-troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1202,17 +1191,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interactive-font-configuration-tui" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Interactive Font Configuration TUI
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#logging-and-troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1282,8 +1260,8 @@
 <div class="highlight"><pre><span></span><code><span class="c1"># Send multi-colored text</span>
 pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"[#ff0000]Hello[/] [#00ff00]pypixelcolor[/]"</span>
 
-<span class="c1"># Send text using a custom Font</span>
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello"</span><span class="w"> </span><span class="nv">font</span><span class="o">=</span><span class="s2">"Press Start 2P"</span><span class="w"> </span><span class="nv">animation</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">speed</span><span class="o">=</span><span class="m">100</span>
+<span class="c1"># Send text using a custom Font file</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello"</span><span class="w"> </span><span class="nv">font</span><span class="o">=</span><span class="s2">"/path/to/font.ttf"</span><span class="w"> </span><span class="nv">animation</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">speed</span><span class="o">=</span><span class="m">100</span>
 </code></pre></div>
 <p>You can also control timers or update scoreboard scores:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start or pause the timer</span>
@@ -1295,11 +1273,6 @@ pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt
 pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_scores<span class="w"> </span><span class="nv">score_p1</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">score_p2</span><span class="o">=</span><span class="m">7</span>
 </code></pre></div>
 <p>For more information on available commands, refer to the <a href="../../commands/content/">Commands</a> page.</p>
-<h2 id="interactive-font-configuration-tui">Interactive Font Configuration TUI</h2>
-<p><code>pypixelcolor</code> includes a built-in terminal user interface (TUI) to preview and calibrate fonts for the commmand <code>send_text</code>:</p>
-<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>--font-config
-</code></pre></div>
-<p>This interface allows you to preview rendering across 16px, 24px, and 32px heights, adjust font sizes, offsets, pixel threshold, toggle variable-width mode, and save preferences.</p>
 <h2 id="logging-and-troubleshooting">Logging and Troubleshooting</h2>
 <p>By default in an interactive terminal, <code>pypixelcolor</code> shows a clean status spinner. If you want detailed logs or are troubleshooting an issue, you can specify <code>--loglevel</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Show debug logs and full traceback on error</span>
