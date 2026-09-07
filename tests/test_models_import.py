@@ -6,6 +6,7 @@ def test_import_from_root_package():
     from pypixelcolor import (
         TextAnimation,
         TimerAction,
+        ScheduleDay,
         ResizeMethod,
         FontConfig,
         DeviceInfo,
@@ -15,6 +16,7 @@ def test_import_from_root_package():
 
     assert TextAnimation.STATIC == 0
     assert TimerAction.START == 1
+    assert ScheduleDay.SAT == 0x80
     assert ResizeMethod.CROP.value == "crop"
 
 
@@ -23,6 +25,7 @@ def test_import_from_models_module():
     from pypixelcolor.models import (
         TextAnimation,
         TimerAction,
+        ScheduleDay,
         ResizeMethod,
         FontConfig,
         DeviceInfo,
@@ -32,4 +35,5 @@ def test_import_from_models_module():
     assert TextAnimation.FADE == 6
     assert TextAnimation.SNOWFLAKE == 7
     assert TimerAction.STOP == 0
+    assert ScheduleDay.MON == 0x02
     assert ResizeMethod.FIT.value == "fit"

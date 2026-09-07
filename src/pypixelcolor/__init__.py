@@ -3,6 +3,7 @@ from .scanner import scan_devices, scan_devices_sync
 from .models import (
     TextAnimation,
     TimerAction,
+    ScheduleDay,
     ResizeMethod,
     FontConfig,
     DeviceInfo,
@@ -15,6 +16,7 @@ __all__ = [
     "scan_devices_sync",
     "TextAnimation",
     "TimerAction",
+    "ScheduleDay",
     "ResizeMethod",
     "FontConfig",
     "DeviceInfo",

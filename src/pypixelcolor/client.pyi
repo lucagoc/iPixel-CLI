@@ -72,6 +72,9 @@ class AsyncClient:
     async def set_rhythm_mode_2(self, style: int = 0, t: int = 0) -> None:
         """Set the rhythm mode of the device (alternative version)."""
         ...
+    async def set_schedule(self, hour: int, minute: int, on: bool, days: pypixelcolor.commands.set_schedule.ScheduleDay | int | str | list[str] | None = None, slot: int = 0) -> None:
+        """Set an automated on/off schedule by time and day of week."""
+        ...
     async def set_scores(self, score_p1: int | str = 0, score_p2: int | str = 0) -> None:
         """Set scoreboard scores for player 1 and player 2."""
         ...
@@ -151,6 +154,9 @@ class Client:
         ...
     def set_rhythm_mode_2(self, style: int = 0, t: int = 0) -> None:
         """Set the rhythm mode of the device (alternative version)."""
+        ...
+    def set_schedule(self, hour: int, minute: int, on: bool, days: pypixelcolor.commands.set_schedule.ScheduleDay | int | str | list[str] | None = None, slot: int = 0) -> None:
+        """Set an automated on/off schedule by time and day of week."""
         ...
     def set_scores(self, score_p1: int | str = 0, score_p2: int | str = 0) -> None:
         """Set scoreboard scores for player 1 and player 2."""
