@@ -126,18 +126,18 @@ async def scan_devices() -> None:
 def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description=f"pypixelcolor - CLI v{VERSION}")
-    parser.add_argument("-s", "--scan", action="store_true", help="Scan for Bluetooth devices")
-    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {VERSION}", help="Show the version and exit")
+    parser.add_argument("-s", "--scan", action="store_true", help="scan for Bluetooth devices")
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {VERSION}", help="show the version and exit")
     parser.add_argument(
         "-c", "--command", action="append", nargs="+", metavar="COMMAND PARAMS",
-        help="Execute a specific command with parameters. Can be used multiple times."
+        help="execute a specific command with parameters, can be used multiple times"
     )
-    parser.add_argument("-a", "--address", help="Specify the Bluetooth device address")
+    parser.add_argument("-a", "--address", help="specify the Bluetooth device address")
     parser.add_argument(
         "-l",
         "--loglevel",
         default=None,
-        help="Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL). Specifying any loglevel disables the interactive spinner.",
+        help="set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
 
     args = parser.parse_args()
