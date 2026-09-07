@@ -9,7 +9,7 @@ from ...lib.transport.send_plan import SendPlan, Window
 from ...lib.device_info import DeviceInfo
 from ...lib.font_config import FontConfig
 
-from .models import RenderContext
+from .models import RenderContext, TextAnimation, parse_animation
 from .font_utils import resolve_font_config, get_char_height_from_device
 from .encoding import encode_text_chunked, encode_text
 from .color_utils import has_color_tags, strip_color_tags, parse_colored_text, parse_hex_color
@@ -76,7 +76,7 @@ def build_text_send_plan(data_payload: bytes, save_slot: int = 0) -> SendPlan:
 
 def send_text(text: str,
               rainbow_mode: int = 0,
-              animation: int = 0,
+              animation: Union[TextAnimation, str, int] = TextAnimation.STATIC,
               save_slot: int = 0,
               speed: int = 80,
               color: str = "ffffff",
@@ -96,7 +96,7 @@ def send_text(text: str,
     Args:
         text (str): The text to send. Supports inline color tags (e.g. '[#ff0000]Hello[/]').
         rainbow_mode (int, optional): Rainbow mode (0-9). Defaults to 0.
-        animation (int, optional): Animation type (0-7, except 3 and 4). Defaults to 0.
+        animation (TextAnimation | str | int, optional): Animation type (e.g. TextAnimation.SCROLL_LEFT, 'scroll_left', 1). Defaults to TextAnimation.STATIC.
         save_slot (int, optional): Save slot (1-10). Defaults to 1.
         speed (int, optional): Animation speed (0-100). Defaults to 80.
         color (str, optional): Default text color in hex. Defaults to "ffffff".
@@ -112,6 +112,9 @@ def send_text(text: str,
     Raises:
         ValueError: If an invalid animation is selected or parameters are out of range.
     """
+    # 0. Parse animation parameter
+    anim = parse_animation(animation)
+
     # 1. Resolve font configuration and character height
     font_config = resolve_font_config(font)
 
@@ -178,7 +181,6 @@ def send_text(text: str,
     # 6. Validate parameter ranges
     checks = [
         (int(rainbow_mode), 0, 9, "Rainbow mode"),
-        (int(animation), 0, 7, "Animation"),
         (int(save_slot), 0, 255, "Save slot"),
         (int(speed), 0, 100, "Speed"),
         (len(clean_text), 1, 500, "Text length"),
@@ -189,11 +191,11 @@ def send_text(text: str,
             raise ValueError(f"{name} must be between {min_val} and {max_val} (got {param})")
 
     if device_info and (device_info.height != 32 or device_info.width != 32):
-        if int(animation) in (3, 4):
+        if anim in (TextAnimation.SCROLL_UP, TextAnimation.SCROLL_DOWN):
             raise ValueError("This animation is not supported with this font on non-32x32 devices.")
 
     # 7. Encode characters
-    rtl = (int(animation) == 2)
+    rtl = (anim == TextAnimation.SCROLL_RIGHT)
 
     if resolved_var_width:
         actual_chunk_width = 8 if char_height <= 20 else 16
@@ -207,10 +209,10 @@ def send_text(text: str,
         num_chars = len(clean_text)
 
     # 8. Assemble data payload and generate transport send plan
-    properties = build_text_properties(animation, speed, rainbow_mode, color_bytes, bg_color_bytes)
+    properties = build_text_properties(anim.value, speed, rainbow_mode, color_bytes, bg_color_bytes)
     data_payload = bytes([num_chars]) + properties + characters_bytes
 
     return build_text_send_plan(data_payload, save_slot=int(save_slot))
 
 
-__all__ = ['send_text']
+__all__ = ['send_text', 'TextAnimation']

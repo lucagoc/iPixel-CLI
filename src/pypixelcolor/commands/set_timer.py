@@ -5,7 +5,7 @@ from ..lib.transport.send_plan import SendPlan, single_window_plan
 
 
 class TimerAction(IntEnum):
-    """Timer action: STOP (0), START (1), PAUSE (2)."""
+    """Timer actions: STOP (0), START (1), PAUSE (2)."""
     STOP = 0
     START = 1
     PAUSE = 2
@@ -17,7 +17,7 @@ def _parse_action(action: Union[TimerAction, str, int]) -> TimerAction:
         return action
 
     if isinstance(action, str):
-        cleaned = action.strip().upper()
+        cleaned = action.strip().upper().replace("-", "_")
         if cleaned in TimerAction.__members__:
             return TimerAction[cleaned]
         if cleaned.isdigit():
@@ -29,8 +29,9 @@ def _parse_action(action: Union[TimerAction, str, int]) -> TimerAction:
         except ValueError:
             pass
 
+    valid_names = ", ".join(m.lower() for m in TimerAction.__members__)
     raise ValueError(
-        f"Invalid timer action: {action!r}. Expected 'start', 'pause', 'stop' (or 0, 1, 2)."
+        f"Invalid timer action: {action!r}. Expected {valid_names} (or 0, 1, 2)."
     )
 
 

@@ -1,82 +1,70 @@
 # Using pypixelcolor as a Python library
 
-## Basic Usage
+## Quickstart Example
 
-You can also use `pypixelcolor` as a Python library in your own scripts.
+All clients and data models can be imported directly from `pypixelcolor` (or `pypixelcolor.models`).
 
-```python
-import pypixelcolor
-
-# Create a PixelColor device instance
-device = pypixelcolor.Client("30:E1:AF:BD:5F:D0")
-
-# Connect to the device
-device.connect()
-
-# Send a text message to the device
-device.send_text("Hello from Python!", animation=1, speed=100)
-
-# Disconnect from the device
-device.disconnect()
-```
-
-## Multiple Devices
-
-You can connect to multiple devices by creating multiple `Client` instances:
+Here is a practical example demonstrating the most common features:
 
 ```python
-import pypixelcolor
+import time
+from pypixelcolor import (
+    Client,
+    TextAnimation,
+    TimerAction,
+    ResizeMethod,
+    FontConfig,
+)
 
-devices = [
-    pypixelcolor.Client("30:E1:AF:BD:5F:D0"), 
-    pypixelcolor.Client("30:E1:AF:BD:20:A9")
-]
+MAC_ADDRESS = "30:E1:AF:BD:5F:D0"
 
-for device in devices:
-    device.connect()
+# The context manager automatically handles connection and disconnection
+with Client(MAC_ADDRESS) as device:
+    # 1. Inspect device dimensions and info
+    info = device.get_device_info()
+    print(f"Connected to {info.width}x{info.height} LED matrix (Type {info.led_type})")
 
-for device in devices:
-    device.send_text("Hello from Python!", animation=1, speed=100)
+    # 2. Display an image or animated GIF
+    device.send_image("./banner.png", resize_method=ResizeMethod.FIT)
+    time.sleep(3)
 
-for device in devices:
-    device.disconnect()
+    # 3. Send text with animations, emojis, and inline color tags
+    device.send_text(
+        "[#ff0000]Hello[/] [#00ff00]pypixelcolor[/] 🚀",
+        animation=TextAnimation.SCROLL_LEFT,
+        speed=80,
+    )
+    time.sleep(3)
+
+    # 4. Smooth pulsing text with a custom font
+    custom_font = FontConfig.from_file("./fonts/retro.ttf", font_size=16)
+    device.send_text("ALERT", font=custom_font, animation=TextAnimation.FADE)
+    time.sleep(2)
+
+    # 5. Control stopwatch timer
+    device.set_timer(TimerAction.START)
+    time.sleep(5)
+    device.set_timer(TimerAction.STOP)
+
+    # 6. Clock mode and brightness
+    device.set_brightness(60)
+    device.set_clock_mode(style=1, format_24=True)
 ```
 
-### Asynchronous Usage
+## Asynchronous Usage (`AsyncClient`)
 
-You can send commands to multiple iPixel Color devices concurrently using asynchronous programming with the `asyncio` library. Below is an example of how to achieve this:
+For async applications or controlling multiple devices concurrently:
 
 ```python
 import asyncio
-import pypixelcolor
+from pypixelcolor import AsyncClient, TextAnimation
 
 async def main():
-    addresses = [
-        "30:E1:AF:BD:5F:D0",
-        "30:E1:AF:BD:20:A9",
-    ]
-
-    # Create clients and connect sequentially (safe for common backends)
-    devices = []
-    for addr in addresses:
-        client = pypixelcolor.AsyncClient(addr)
-        await client.connect()
-        devices.append(client)
-
-    if not devices:
-        return
-
-    # Launch sends concurrently across all connected devices
-    tasks = [asyncio.create_task(d.send_image("./python.png")) for d in devices]
-    await asyncio.gather(*tasks)
-
-    # Disconnect all
-    for d in devices:
-        await d.disconnect()
+    async with AsyncClient("30:E1:AF:BD:5F:D0") as device:
+        await device.send_text("Hello Async!", animation=TextAnimation.SCROLL_LEFT)
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-!!! warning "Caution"
-    Heavy data operations (like image sending) are not stable when performed concurrently on multiple devices due to potential Bluetooth backend limitations.
+

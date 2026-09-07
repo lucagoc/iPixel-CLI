@@ -40,7 +40,14 @@ Controls the timer (stopwatch) mode on the device.
 **Examples:**
 
 ```python
-# Start, pause or stop the timer
+from pypixelcolor import TimerAction
+
+# Using Enum
+client.set_timer(TimerAction.START)
+client.set_timer(TimerAction.PAUSE)
+client.set_timer(TimerAction.STOP)
+
+# Using string names
 client.set_timer("start")
 client.set_timer("pause")
 client.set_timer("stop")

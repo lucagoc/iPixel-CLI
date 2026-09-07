@@ -168,3 +168,35 @@ def test_send_text_var_width_override(mock_device, monkeypatch):
     called_funcs.clear()
     send_text("HI", font=fc_var, var_width="false", device_info=mock_device)
     assert called_funcs == ["standard"]
+
+
+def test_send_text_animation_parameters(mock_device):
+    """Verify animation accepts TextAnimation enum, string names, and integers."""
+    from pypixelcolor.models import TextAnimation
+
+    # 1. Enum instances
+    plan_enum = send_text("Hello", animation=TextAnimation.SCROLL_LEFT, device_info=mock_device)
+    assert len(list(plan_enum.windows)) > 0
+
+    # 2. String names (case-insensitive)
+    plan_str = send_text("Hello", animation="scroll_left", device_info=mock_device)
+    assert len(list(plan_str.windows)) > 0
+
+    plan_blink = send_text("Hello", animation="blink", device_info=mock_device)
+    assert len(list(plan_blink.windows)) > 0
+
+    plan_static = send_text("Hello", animation="STATIC", device_info=mock_device)
+    assert len(list(plan_static.windows)) > 0
+
+    # 3. Direct integers
+    plan_int = send_text("Hello", animation=1, device_info=mock_device)
+    assert len(list(plan_int.windows)) > 0
+
+    # 4. Invalid animation raises ValueError
+    with pytest.raises(ValueError, match="Invalid animation"):
+        send_text("Hello", animation="nonexistent_animation", device_info=mock_device)
+
+    with pytest.raises(ValueError, match="Invalid animation"):
+        send_text("Hello", animation=99, device_info=mock_device)
+
+
