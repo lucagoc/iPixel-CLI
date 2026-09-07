@@ -26,16 +26,6 @@ class ResizeMethod(Enum):
     FIT = "fit"
 
 # Helper functions for byte-level transformations
-def _frame_size_bytes(length: int, size_hex_digits: int) -> bytes:
-    """Return the length encoded as little-endian bytes.
-
-    length: number of raw bytes
-    size_hex_digits: number of hex digits used historically (e.g. 4 or 8). We convert to bytes = size_hex_digits//2
-    """
-    byte_count = size_hex_digits // 2
-    return int(length).to_bytes(byte_count, byteorder="little")
-
-
 def _crc32_le(data: bytes) -> bytes:
     """Return CRC32 as 4 bytes little-endian for the given raw bytes."""
     calculated_crc = binascii.crc32(data) & 0xFFFFFFFF
@@ -152,10 +142,6 @@ def _resize_and_fit_image(img: Image.Image, target_width: int, target_height: in
     # Resize with aspect ratio preserved
     img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
-    # Ensure a plain opaque RGB image
-    if img_resized.mode != 'RGB':
-        img_resized = img_resized.convert('RGB')
-
     new_img = Image.new('RGB', (target_width, target_height), background_color)
 
     # Calculate paste coordinates to center the image.
@@ -189,8 +175,8 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
     needs_resize = img.size != (target_width, target_height)
     logger.debug(f"Original image size: {img.size[0]}x{img.size[1]}, Target size: {target_width}x{target_height}")
     
-    # Check if conversion from palette mode is needed
-    needs_conversion = img.mode in ('P', 'PA', 'L', 'LA')
+    # Check if conversion from non-RGB mode is needed
+    needs_conversion = img.mode != 'RGB'
     
     # For GIFs we always re-save/re-encode the animation to ensure per-frame
     # metadata (duration, disposal, palette) is normalized and consistent.
@@ -203,7 +189,7 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         logger.debug(f"Resizing image from {img.size[0]}x{img.size[1]} to {target_width}x{target_height} (preserving aspect ratio with {resize_method})")
     
     if needs_conversion:
-        logger.debug(f"Converting image from mode {img.mode} to RGB (removing palette)")
+        logger.debug(f"Converting image from mode {img.mode} to RGB")
     
     if is_gif:
         # Always re-encode GIFs by iterating per-frame. Use per-frame
@@ -242,27 +228,15 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         frame_count = len(frames)
         logger.debug(f"Processing {frame_count} frames for animated GIF")
 
-        # Normalize durations and disposal_methods so their length equals frame_count
         durations = [int(d) for d in durations]
-        if len(durations) < frame_count:
-            last = durations[-1] if durations else 100
-            durations += [last] * (frame_count - len(durations))
-        elif len(durations) > frame_count:
-            durations = durations[:frame_count]
-
         disposal_methods = [int(d) for d in disposal_methods]
-        if len(disposal_methods) < frame_count:
-            last = disposal_methods[-1] if disposal_methods else 2
-            disposal_methods += [last] * (frame_count - len(disposal_methods))
-        elif len(disposal_methods) > frame_count:
-            disposal_methods = disposal_methods[:frame_count]
 
         output = BytesIO()
 
-        # Single frame GIF hotfix: PIL expects single-frame GIFs to have duration and disposal
+        # Single frame GIF hotfix: PIL expects single-frame GIFs to have an int for duration and disposal
         if frame_count == 1:
-            duration_arg = int(durations[0]) if durations else int(img.info.get('duration', 100))
-            disposal_arg = int(disposal_methods[0]) if disposal_methods else int(img.info.get('disposal', 2))
+            duration_arg = durations[0]
+            disposal_arg = disposal_methods[0]
         else:
             duration_arg = durations
             disposal_arg = disposal_methods
@@ -292,8 +266,7 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
                 resized_img = _resize_and_crop_image(flattened, target_width, target_height)
         else:
             resized_img = flattened
-        # Already RGB from the flatten step, but keep this as a safety net.
-        #resized_img = resized_img.convert('RGB')
+
         output = BytesIO()
         resized_img.save(output, format='PNG')
         
@@ -329,9 +302,8 @@ def _build_send_plan(file_bytes: bytes, is_gif: bool, plan_name: str = "send_ima
     previous APIs where hex vs file used slightly different plan names).
     save_slot: if >= 1, will save to that slot.
     """
-    size_bytes = _frame_size_bytes(len(file_bytes), 8)  # 4 bytes little-endian
-    crc_bytes = _crc32_le(file_bytes)  # 4 bytes little-endian
-    payload = file_bytes
+    size_bytes = len(file_bytes).to_bytes(4, byteorder="little")
+    crc_bytes = _crc32_le(file_bytes)
 
     logger.info(f"Sending {len(file_bytes) / 1024:.2f} KB")
 
@@ -339,9 +311,9 @@ def _build_send_plan(file_bytes: bytes, is_gif: bool, plan_name: str = "send_ima
     window_size = 12 * 1024
     pos = 0
     window_index = 0
-    while pos < len(payload):
-        window_end = min(pos + window_size, len(payload))
-        chunk_payload = payload[pos:window_end]
+    while pos < len(file_bytes):
+        window_end = min(pos + window_size, len(file_bytes))
+        chunk_payload = file_bytes[pos:window_end]
 
         option = 0x00 if window_index == 0 else 0x02
 
