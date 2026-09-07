@@ -2099,8 +2099,7 @@ or integer (0 = stop, 1 = start, 2 = pause).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/pypixelcolor/commands/set_timer.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
-<span class="normal">38</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
 <span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
@@ -2119,7 +2118,8 @@ or integer (0 = stop, 1 = start, 2 = pause).</p>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
-<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_timer</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TimerAction</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SendPlan</span><span class="p">:</span>
+<span class="normal">57</span>
+<span class="normal">58</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_timer</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TimerAction</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SendPlan</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Set timer action (start, pause, stop).</span>
 
@@ -2145,7 +2145,14 @@ or integer (0 = stop, 1 = start, 2 = pause).</p>
     </div>
 
 </div><p><strong>Examples:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Start, pause or stop the timer</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimerAction</span>
+
+<span class="c1"># Using Enum</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="n">TimerAction</span><span class="o">.</span><span class="n">START</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="n">TimerAction</span><span class="o">.</span><span class="n">PAUSE</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="n">TimerAction</span><span class="o">.</span><span class="n">STOP</span><span class="p">)</span>
+
+<span class="c1"># Using string names</span>
 <span class="n">client</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="s2">"start"</span><span class="p">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="s2">"pause"</span><span class="p">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="s2">"stop"</span><span class="p">)</span>

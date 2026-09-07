@@ -598,10 +598,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
+  <a href="#quickstart-example" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Basic Usage
+        Quickstart Example
       </span>
     </span>
   </a>
@@ -609,30 +609,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#multiple-devices" class="md-nav__link">
+  <a href="#asynchronous-usage-asyncclient" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Multiple Devices
+        Asynchronous Usage (<code>AsyncClient</code>)
       </span>
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Multiple Devices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#asynchronous-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Asynchronous Usage
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1164,10 +1147,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
+  <a href="#quickstart-example" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Basic Usage
+        Quickstart Example
       </span>
     </span>
   </a>
@@ -1175,30 +1158,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#multiple-devices" class="md-nav__link">
+  <a href="#asynchronous-usage-asyncclient" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Multiple Devices
+        Asynchronous Usage (<code>AsyncClient</code>)
       </span>
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Multiple Devices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#asynchronous-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Asynchronous Usage
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1226,76 +1192,64 @@
 
 
 <h1 id="using-pypixelcolor-as-a-python-library">Using pypixelcolor as a Python library</h1>
-<h2 id="basic-usage">Basic Usage</h2>
-<p>You can also use <code>pypixelcolor</code> as a Python library in your own scripts.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pypixelcolor</span>
+<h2 id="quickstart-example">Quickstart Example</h2>
+<p>All clients and data models can be imported directly from <code>pypixelcolor</code> (or <code>pypixelcolor.models</code>).</p>
+<p>Here is a practical example demonstrating the most common features:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Client</span><span class="p">,</span>
+    <span class="n">TextAnimation</span><span class="p">,</span>
+    <span class="n">TimerAction</span><span class="p">,</span>
+    <span class="n">ResizeMethod</span><span class="p">,</span>
+    <span class="n">FontConfig</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="c1"># Create a PixelColor device instance</span>
-<span class="n">device</span> <span class="o">=</span> <span class="n">pypixelcolor</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">"30:E1:AF:BD:5F:D0"</span><span class="p">)</span>
+<span class="n">MAC_ADDRESS</span> <span class="o">=</span> <span class="s2">"30:E1:AF:BD:5F:D0"</span>
 
-<span class="c1"># Connect to the device</span>
-<span class="n">device</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="c1"># The context manager automatically handles connection and disconnection</span>
+<span class="k">with</span> <span class="n">Client</span><span class="p">(</span><span class="n">MAC_ADDRESS</span><span class="p">)</span> <span class="k">as</span> <span class="n">device</span><span class="p">:</span>
+    <span class="c1"># 1. Inspect device dimensions and info</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">get_device_info</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Connected to </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">width</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">height</span><span class="si">}</span><span class="s2"> LED matrix (Type </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">led_type</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
-<span class="c1"># Send a text message to the device</span>
-<span class="n">device</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello from Python!"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="c1"># 2. Display an image or animated GIF</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">send_image</span><span class="p">(</span><span class="s2">"./banner.png"</span><span class="p">,</span> <span class="n">resize_method</span><span class="o">=</span><span class="n">ResizeMethod</span><span class="o">.</span><span class="n">FIT</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
-<span class="c1"># Disconnect from the device</span>
-<span class="n">device</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+    <span class="c1"># 3. Send text with animations, emojis, and inline color tags</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span>
+        <span class="s2">"[#ff0000]Hello[/] [#00ff00]pypixelcolor[/] 🚀"</span><span class="p">,</span>
+        <span class="n">animation</span><span class="o">=</span><span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_LEFT</span><span class="p">,</span>
+        <span class="n">speed</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="c1"># 4. Smooth pulsing text with a custom font</span>
+    <span class="n">custom_font</span> <span class="o">=</span> <span class="n">FontConfig</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">"./fonts/retro.ttf"</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"ALERT"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">custom_font</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="n">TextAnimation</span><span class="o">.</span><span class="n">FADE</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># 5. Control stopwatch timer</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="n">TimerAction</span><span class="o">.</span><span class="n">START</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">set_timer</span><span class="p">(</span><span class="n">TimerAction</span><span class="o">.</span><span class="n">STOP</span><span class="p">)</span>
+
+    <span class="c1"># 6. Clock mode and brightness</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">set_clock_mode</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">format_24</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="multiple-devices">Multiple Devices</h2>
-<p>You can connect to multiple devices by creating multiple <code>Client</code> instances:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pypixelcolor</span>
-
-<span class="n">devices</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">pypixelcolor</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">"30:E1:AF:BD:5F:D0"</span><span class="p">),</span> 
-    <span class="n">pypixelcolor</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">"30:E1:AF:BD:20:A9"</span><span class="p">)</span>
-<span class="p">]</span>
-
-<span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
-    <span class="n">device</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
-    <span class="n">device</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello from Python!"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
-    <span class="n">device</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
-</code></pre></div>
-<h3 id="asynchronous-usage">Asynchronous Usage</h3>
-<p>You can send commands to multiple iPixel Color devices concurrently using asynchronous programming with the <code>asyncio</code> library. Below is an example of how to achieve this:</p>
+<h2 id="asynchronous-usage-asyncclient">Asynchronous Usage (<code>AsyncClient</code>)</h2>
+<p>For async applications or controlling multiple devices concurrently:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pypixelcolor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncClient</span><span class="p">,</span> <span class="n">TextAnimation</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="n">addresses</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">"30:E1:AF:BD:5F:D0"</span><span class="p">,</span>
-        <span class="s2">"30:E1:AF:BD:20:A9"</span><span class="p">,</span>
-    <span class="p">]</span>
-
-    <span class="c1"># Create clients and connect sequentially (safe for common backends)</span>
-    <span class="n">devices</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">addresses</span><span class="p">:</span>
-        <span class="n">client</span> <span class="o">=</span> <span class="n">pypixelcolor</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">(</span><span class="n">addr</span><span class="p">)</span>
-        <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-        <span class="n">devices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">devices</span><span class="p">:</span>
-        <span class="k">return</span>
-
-    <span class="c1"># Launch sends concurrently across all connected devices</span>
-    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">send_image</span><span class="p">(</span><span class="s2">"./python.png"</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">]</span>
-    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
-
-    <span class="c1"># Disconnect all</span>
-    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">d</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncClient</span><span class="p">(</span><span class="s2">"30:E1:AF:BD:5F:D0"</span><span class="p">)</span> <span class="k">as</span> <span class="n">device</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">device</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello Async!"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_LEFT</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
-<div class="admonition warning">
-<p class="admonition-title">Caution</p>
-<p>Heavy data operations (like image sending) are not stable when performed concurrently on multiple devices due to potential Bluetooth backend limitations.</p>
-</div>
 
 
 

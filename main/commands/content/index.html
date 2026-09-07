@@ -727,6 +727,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#animation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Animation Types
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#font-selection" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1231,6 +1242,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#animation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Animation Types
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#font-selection" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1689,15 +1711,15 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
                 <code>animation</code>
             </td>
             <td>
-                  <code><span title="int">int</span></code>
+                  <code><span title="pypixelcolor.commands.send_text.models.TextAnimation">TextAnimation</span> | <span title="str">str</span> | <span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Animation type (0-7, except 3 and 4). Defaults to 0.</p>
+                <p>Animation type (e.g. TextAnimation.SCROLL_LEFT, 'scroll_left', 1). Defaults to TextAnimation.STATIC.</p>
               </div>
             </td>
             <td>
-                  <code>0</code>
+                  <code><span title="pypixelcolor.commands.send_text.models.TextAnimation.STATIC">STATIC</span></code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -2041,9 +2063,11 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="normal">210</span>
 <span class="normal">211</span>
 <span class="normal">212</span>
-<span class="normal">213</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
               <span class="n">rainbow_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-              <span class="n">animation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+              <span class="n">animation</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TextAnimation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">TextAnimation</span><span class="o">.</span><span class="n">STATIC</span><span class="p">,</span>
               <span class="n">save_slot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
               <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span>
               <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ffffff"</span><span class="p">,</span>
@@ -2063,7 +2087,7 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="sd">    Args:</span>
 <span class="sd">        text (str): The text to send. Supports inline color tags (e.g. '[#ff0000]Hello[/]').</span>
 <span class="sd">        rainbow_mode (int, optional): Rainbow mode (0-9). Defaults to 0.</span>
-<span class="sd">        animation (int, optional): Animation type (0-7, except 3 and 4). Defaults to 0.</span>
+<span class="sd">        animation (TextAnimation | str | int, optional): Animation type (e.g. TextAnimation.SCROLL_LEFT, 'scroll_left', 1). Defaults to TextAnimation.STATIC.</span>
 <span class="sd">        save_slot (int, optional): Save slot (1-10). Defaults to 1.</span>
 <span class="sd">        speed (int, optional): Animation speed (0-100). Defaults to 80.</span>
 <span class="sd">        color (str, optional): Default text color in hex. Defaults to "ffffff".</span>
@@ -2079,6 +2103,9 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If an invalid animation is selected or parameters are out of range.</span>
 <span class="sd">    """</span>
+    <span class="c1"># 0. Parse animation parameter</span>
+    <span class="n">anim</span> <span class="o">=</span> <span class="n">parse_animation</span><span class="p">(</span><span class="n">animation</span><span class="p">)</span>
+
     <span class="c1"># 1. Resolve font configuration and character height</span>
     <span class="n">font_config</span> <span class="o">=</span> <span class="n">resolve_font_config</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
 
@@ -2145,7 +2172,6 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
     <span class="c1"># 6. Validate parameter ranges</span>
     <span class="n">checks</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rainbow_mode</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s2">"Rainbow mode"</span><span class="p">),</span>
-        <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">animation</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">"Animation"</span><span class="p">),</span>
         <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">save_slot</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="s2">"Save slot"</span><span class="p">),</span>
         <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">speed</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"Speed"</span><span class="p">),</span>
         <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">clean_text</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">"Text length"</span><span class="p">),</span>
@@ -2156,11 +2182,11 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be between </span><span class="si">{</span><span class="n">min_val</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">max_val</span><span class="si">}</span><span class="s2"> (got </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">device_info</span> <span class="ow">and</span> <span class="p">(</span><span class="n">device_info</span><span class="o">.</span><span class="n">height</span> <span class="o">!=</span> <span class="mi">32</span> <span class="ow">or</span> <span class="n">device_info</span><span class="o">.</span><span class="n">width</span> <span class="o">!=</span> <span class="mi">32</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">animation</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">anim</span> <span class="ow">in</span> <span class="p">(</span><span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_UP</span><span class="p">,</span> <span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_DOWN</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"This animation is not supported with this font on non-32x32 devices."</span><span class="p">)</span>
 
     <span class="c1"># 7. Encode characters</span>
-    <span class="n">rtl</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">animation</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">rtl</span> <span class="o">=</span> <span class="p">(</span><span class="n">anim</span> <span class="o">==</span> <span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_RIGHT</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">resolved_var_width</span><span class="p">:</span>
         <span class="n">actual_chunk_width</span> <span class="o">=</span> <span class="mi">8</span> <span class="k">if</span> <span class="n">char_height</span> <span class="o">&lt;=</span> <span class="mi">20</span> <span class="k">else</span> <span class="mi">16</span>
@@ -2174,7 +2200,7 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
         <span class="n">num_chars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">clean_text</span><span class="p">)</span>
 
     <span class="c1"># 8. Assemble data payload and generate transport send plan</span>
-    <span class="n">properties</span> <span class="o">=</span> <span class="n">build_text_properties</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">speed</span><span class="p">,</span> <span class="n">rainbow_mode</span><span class="p">,</span> <span class="n">color_bytes</span><span class="p">,</span> <span class="n">bg_color_bytes</span><span class="p">)</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="n">build_text_properties</span><span class="p">(</span><span class="n">anim</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">speed</span><span class="p">,</span> <span class="n">rainbow_mode</span><span class="p">,</span> <span class="n">color_bytes</span><span class="p">,</span> <span class="n">bg_color_bytes</span><span class="p">)</span>
     <span class="n">data_payload</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">num_chars</span><span class="p">])</span> <span class="o">+</span> <span class="n">properties</span> <span class="o">+</span> <span class="n">characters_bytes</span>
 
     <span class="k">return</span> <span class="n">build_text_send_plan</span><span class="p">(</span><span class="n">data_payload</span><span class="p">,</span> <span class="n">save_slot</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">save_slot</span><span class="p">))</span>
@@ -2200,6 +2226,76 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <p class="admonition-title">Note</p>
 <p>Inline color tags are supported with standard font rendering. When variable-width mode is enabled (<code>var_width=True</code>), color tags are ignored with a warning and the uniform <code>color</code> parameter is used instead.</p>
 </div>
+<h3 id="animation-types">Animation Types</h3>
+<p>The <code>animation</code> parameter accepts a <code>TextAnimation</code> enum, a string name, or an integer:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>String</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td><code>TextAnimation.STATIC</code></td>
+<td><code>"static"</code></td>
+<td>Static text without animation (default)</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td><code>TextAnimation.SCROLL_LEFT</code></td>
+<td><code>"scroll_left"</code></td>
+<td>Scrolls from right to left</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td><code>TextAnimation.SCROLL_RIGHT</code></td>
+<td><code>"scroll_right"</code></td>
+<td>Scrolls from left to right</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td><code>TextAnimation.SCROLL_UP</code></td>
+<td><code>"scroll_up"</code></td>
+<td>Scrolls upwards (32x32 devices only)</td>
+</tr>
+<tr>
+<td><code>4</code></td>
+<td><code>TextAnimation.SCROLL_DOWN</code></td>
+<td><code>"scroll_down"</code></td>
+<td>Scrolls downwards (32x32 devices only)</td>
+</tr>
+<tr>
+<td><code>5</code></td>
+<td><code>TextAnimation.BLINK</code></td>
+<td><code>"blink"</code></td>
+<td>Fast blinking text effect</td>
+</tr>
+<tr>
+<td><code>6</code></td>
+<td><code>TextAnimation.FADE</code></td>
+<td><code>"fade"</code></td>
+<td>Smooth blinking / breathing effect</td>
+</tr>
+<tr>
+<td><code>7</code></td>
+<td><code>TextAnimation.SNOWFLAKE</code></td>
+<td><code>"snowflake"</code></td>
+<td>Falling snowflake effect</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextAnimation</span>
+
+<span class="c1"># Using Enum</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_LEFT</span><span class="p">)</span>
+
+<span class="c1"># Using string name</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Alert!"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="s2">"blink"</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+</code></pre></div>
 <h3 id="font-selection">Font Selection</h3>
 <p>The <code>font</code> argument supports multiple formats:</p>
 <ul>
