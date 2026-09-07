@@ -1133,6 +1133,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pypixelcolor.client.AsyncClient.set_schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        set_schedule
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pypixelcolor.client.AsyncClient.set_scores" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1642,6 +1653,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         set_rhythm_mode_2
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pypixelcolor.client.AsyncClient.set_schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        set_schedule
       </span>
     </span>
   </a>
@@ -2642,6 +2664,35 @@ This is a simple getter for the cached data.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="pypixelcolor.client.AsyncClient.set_schedule" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_schedule</span><span class="p">(</span><span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="p">,</span> <span class="n">on</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">slot</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Set an automated on/off schedule by time and day of week.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/pypixelcolor/client.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">75</span>
+<span class="normal">76</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_connected</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="pypixelcolor.client.AsyncClient.set_scores" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">set_scores</span><span class="p">(</span><span class="n">score_p1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">score_p2</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
 
@@ -2659,9 +2710,11 @@ This is a simple getter for the cached data.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/pypixelcolor/client.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">75</span>
-<span class="normal">76</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-<span class="bp">self</span><span class="o">.</span><span class="n">_connected</span> <span class="o">=</span> <span class="kc">True</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Disconnect from the BLE device."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connected</span><span class="p">:</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2688,11 +2741,9 @@ This is a simple getter for the cached data.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/pypixelcolor/client.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Disconnect from the BLE device."""</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connected</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">81</span>
+<span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Not connected"</span><span class="p">)</span>
+<span class="k">return</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2719,9 +2770,9 @@ This is a simple getter for the cached data.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/pypixelcolor/client.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">81</span>
-<span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Not connected"</span><span class="p">)</span>
-<span class="k">return</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">84</span>
+<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_connected</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2748,9 +2799,11 @@ This is a simple getter for the cached data.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/pypixelcolor/client.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">84</span>
-<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
-<span class="bp">self</span><span class="o">.</span><span class="n">_connected</span> <span class="o">=</span> <span class="kc">False</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get the client library version."""</span>
+    <span class="k">return</span> <span class="n">VERSION</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
