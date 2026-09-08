@@ -109,7 +109,6 @@ def test_send_text_end_to_end_per_char_colors():
     plan = send_text(
         text="[#ff0000]A[/][#00ff00]B[/]",
         char_height=16,
-        var_width=False,
     )
     assert plan.id == "send_text"
     window = next(iter(plan.windows))
@@ -132,7 +131,8 @@ def test_send_text_var_width_warns_and_ignores_tags(caplog):
         plan = send_text(
             text="[#ff0000]Hello[/]",
             char_height=16,
-            var_width=True,
+            font="var_width=true",
         )
     assert "Color tags are not supported with var_width and will be ignored." in caplog.text
     assert plan.id == "send_text"
+

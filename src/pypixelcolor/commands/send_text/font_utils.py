@@ -16,37 +16,22 @@ def resolve_font_config(font: Union[str, Path, FontConfig]) -> FontConfig:
 
     Args:
         font: Either a built-in font name (str), a local file path (str/Path),
-              or an existing FontConfig instance.
+              a key-value string, or an existing FontConfig instance.
 
     Returns:
         FontConfig instance.
 
     Raises:
-        ValueError: If font argument type is invalid.
-        FileNotFoundError: If the font file or built-in font is not found.
+        ValueError: If font argument type is invalid or string cannot be parsed.
+        FileNotFoundError: If the font file is not found.
     """
     if isinstance(font, FontConfig):
         return font
-
     if isinstance(font, Path):
-        font_str = str(font)
-    elif isinstance(font, str):
-        font_str = font.strip()
-    else:
-        raise ValueError(f"Font must be a string, Path, or FontConfig, got {type(font)}")
-
-    # 1. Check built-in fonts (case-insensitive)
-    if font_str.upper() in BUILTIN_FONTS:
-        return FontConfig.builtin(font_str.upper())
-
-    # 2. Check local file path
-    path = Path(font_str).expanduser()
-    if path.is_file():
-        return FontConfig.from_file(path)
-
-    raise FileNotFoundError(
-        f"Font '{font}' not found. Available built-in fonts: {list(BUILTIN_FONTS.keys())}"
-    )
+        return FontConfig.from_file(font)
+    if isinstance(font, str):
+        return FontConfig.from_string(font)
+    raise ValueError(f"Font must be a string, Path, or FontConfig, got {type(font)}")
 
 
 def get_char_height_from_device(device_info: DeviceInfo) -> int:

@@ -62,8 +62,42 @@ def test_send_text_multilingual(mock_device):
     assert len(windows[0].data) > 0
 
 
-def test_send_text_manual_overrides(mock_device, monkeypatch):
-    """Verify manual font parameter overrides are accepted and correctly passed."""
+def test_font_config_from_string():
+    """Verify FontConfig.from_string parses names, paths, and key-value pairs."""
+    from pypixelcolor.lib.font_config import UNIFONT_PATH
+
+    # 1. Built-in font name or empty
+    fc1 = FontConfig.from_string("UNIFONT")
+    assert fc1.name == "UNIFONT"
+    assert fc1.var_width is False
+
+    fc1_empty = FontConfig.from_string("")
+    assert fc1_empty.name == "UNIFONT"
+
+    # 2. File path
+    fc2 = FontConfig.from_string(UNIFONT_PATH)
+    assert fc2.path == UNIFONT_PATH
+    assert fc2.var_width is False
+
+    # 3. Direct options without path or name (defaults to UNIFONT)
+    fc3 = FontConfig.from_string("var_width=true,font_size=16")
+    assert fc3.name == "UNIFONT"
+    assert fc3.var_width is True
+    assert fc3.font_size == 16
+
+    # 4. Path with key-value overrides
+    fc4 = FontConfig.from_string(f"path={UNIFONT_PATH},font_size=14,offset=0;2,pixel_threshold=80,var_width=true")
+    assert fc4.path == UNIFONT_PATH
+    assert fc4.font_size == 14
+    assert fc4.offset == (0, 2)
+    assert fc4.pixel_threshold == 80
+    assert fc4.var_width is True
+
+
+
+def test_send_text_key_value_font_string(mock_device, monkeypatch):
+    """Verify send_text with key-value font string passes parameters correctly."""
+    from pypixelcolor.lib.font_config import UNIFONT_PATH
     import pypixelcolor.commands.send_text as send_text_mod
 
     captured_params = {}
@@ -77,27 +111,10 @@ def test_send_text_manual_overrides(mock_device, monkeypatch):
 
     monkeypatch.setattr(send_text_mod, "encode_text", mock_encode)
 
-    # 1. Native types override
     send_text(
         text="Test",
         device_info=mock_device,
-        font_size=14,
-        font_offset=(0, 2),
-        pixel_threshold=80,
-        var_width=False,
-    )
-    assert captured_params["font_size"] == 14
-    assert captured_params["offset"] == (0, 2)
-    assert captured_params["pixel_threshold"] == 80
-
-    # 2. String representation override (from CLI / WebSocket)
-    send_text(
-        text="Test",
-        device_info=mock_device,
-        font_size="18",
-        font_offset="1,3",
-        pixel_threshold="45",
-        var_width="false",
+        font=f"path={UNIFONT_PATH},font_size=18,offset=1:3,pixel_threshold=45",
     )
     assert captured_params["font_size"] == 18
     assert captured_params["offset"] == (1, 3)
@@ -105,7 +122,7 @@ def test_send_text_manual_overrides(mock_device, monkeypatch):
 
 
 def test_send_text_var_width_from_config(mock_device):
-    """Verify send_text uses var_width from font configuration without command arg."""
+    """Verify send_text uses var_width from font configuration."""
     from pypixelcolor.lib.font_config import UNIFONT_PATH
 
     fc = FontConfig(
@@ -120,8 +137,8 @@ def test_send_text_var_width_from_config(mock_device):
     assert len(windows) > 0
 
 
-def test_send_text_var_width_override(mock_device, monkeypatch):
-    """Verify send_text var_width argument overrides font configuration."""
+def test_send_text_var_width_from_string(mock_device, monkeypatch):
+    """Verify send_text switches to chunked encoding when var_width=true in font string."""
     from pypixelcolor.lib.font_config import UNIFONT_PATH
     import pypixelcolor.commands.send_text as send_text_mod
 
@@ -140,34 +157,16 @@ def test_send_text_var_width_override(mock_device, monkeypatch):
     monkeypatch.setattr(send_text_mod, "encode_text_chunked", mock_chunked)
     monkeypatch.setattr(send_text_mod, "encode_text", mock_standard)
 
-    # Font has var_width=False, but command passes var_width=True
-    fc_fixed = FontConfig(
-        name="FIXED",
-        path=UNIFONT_PATH,
-        var_width=False,
-    )
+    # Key-value string with var_width=true
     called_funcs.clear()
-    send_text("HI", font=fc_fixed, var_width=True, device_info=mock_device)
+    send_text("HI", font=f"path={UNIFONT_PATH},var_width=true", device_info=mock_device)
     assert called_funcs == ["chunked"]
 
-    # Font has var_width=True, but command passes var_width=False
-    fc_var = FontConfig(
-        name="VAR",
-        path=UNIFONT_PATH,
-        var_width=True,
-    )
+    # Key-value string with var_width=false
     called_funcs.clear()
-    send_text("HI", font=fc_var, var_width=False, device_info=mock_device)
+    send_text("HI", font=f"path={UNIFONT_PATH},var_width=false", device_info=mock_device)
     assert called_funcs == ["standard"]
 
-    # Test string boolean parsing (e.g. from CLI "true" / "false")
-    called_funcs.clear()
-    send_text("HI", font=fc_fixed, var_width="true", device_info=mock_device)
-    assert called_funcs == ["chunked"]
-
-    called_funcs.clear()
-    send_text("HI", font=fc_var, var_width="false", device_info=mock_device)
-    assert called_funcs == ["standard"]
 
 
 def test_send_text_animation_parameters(mock_device):

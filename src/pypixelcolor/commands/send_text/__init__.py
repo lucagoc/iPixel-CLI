@@ -83,10 +83,6 @@ def send_text(text: str,
               bg_color: Optional[str] = None,
               font: Union[str, FontConfig] = "UNIFONT",
               char_height: Optional[int] = None,
-              font_size: Optional[int] = None,
-              font_offset: Optional[tuple[int, int]] = None,
-              pixel_threshold: Optional[int] = None,
-              var_width: Optional[Union[bool, str]] = None,
               device_info: Optional[DeviceInfo] = None
               ) -> SendPlan:
     """
@@ -101,12 +97,8 @@ def send_text(text: str,
         speed (int, optional): Animation speed (0-100). Defaults to 80.
         color (str, optional): Default text color in hex. Defaults to "ffffff".
         bg_color (str, optional): Background color in hex (e.g., "ff0000"). Defaults to None.
-        font (str | FontConfig, optional): Font name, file path, or FontConfig. Defaults to "UNIFONT".
+        font (str | FontConfig, optional): Font name, file path, key-value string, or FontConfig. Defaults to "UNIFONT".
         char_height (int, optional): Character height. Auto-detected from device_info if not specified.
-        font_size (int, optional): Manual font size override.
-        font_offset (tuple[int, int], optional): Manual font offset override (x, y).
-        pixel_threshold (int, optional): Manual pixel threshold override (0-255).
-        var_width (bool, optional): Override variable width mode.
         device_info (DeviceInfo, optional): Device information (injected automatically).
 
     Raises:
@@ -126,42 +118,17 @@ def send_text(text: str,
 
     char_height = int(char_height)
 
-    # 2. Resolve rendering parameters into a RenderContext
-    if font_size is not None:
-        resolved_font_size = int(font_size)
-    elif font_config.font_size is not None:
-        resolved_font_size = int(font_config.font_size)
-    else:
-        resolved_font_size = char_height
-
-    if font_offset is not None:
-        if isinstance(font_offset, str):
-            cleaned = font_offset.strip("()[] ")
-            parts = [int(p.strip()) for p in cleaned.split(",")]
-            resolved_offset = (parts[0], parts[1])
-        else:
-            resolved_offset = (int(font_offset[0]), int(font_offset[1]))
-    else:
-        resolved_offset = font_config.offset
-
-    if pixel_threshold is not None:
-        resolved_threshold = int(pixel_threshold)
-    else:
-        resolved_threshold = font_config.pixel_threshold
-
+    # 2. Build RenderContext from FontConfig
     context = RenderContext(
         char_height=char_height,
         font_path=font_config.path,
-        font_size=resolved_font_size,
-        font_offset=resolved_offset,
-        pixel_threshold=resolved_threshold,
+        font_size=font_config.font_size if font_config.font_size is not None else char_height,
+        font_offset=font_config.offset,
+        pixel_threshold=font_config.pixel_threshold,
     )
 
-    # 3. Resolve var_width mode
-    if var_width is not None:
-        resolved_var_width = var_width.lower() in ("true", "1", "yes", "y") if isinstance(var_width, str) else bool(var_width)
-    else:
-        resolved_var_width = bool(font_config.var_width)
+    resolved_var_width = font_config.var_width
+
 
     # 4. Handle inline color tags
     if resolved_var_width:
