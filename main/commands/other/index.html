@@ -1373,7 +1373,16 @@
             </details>
     </div>
 
-</div><h2 id="set_pixel"><code>set_pixel</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable fun mode</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_fun_mode</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Disable fun mode</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_fun_mode</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_fun_mode<span class="w"> </span><span class="nb">true</span>
+</code></pre></div>
+<h2 id="set_pixel"><code>set_pixel</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1524,7 +1533,16 @@
             </details>
     </div>
 
-</div><h2 id="set_rhythm_mode"><code>set_rhythm_mode</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set pixel at coordinates (x=0, y=0) to red (#FF0000)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_pixel</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"FF0000"</span><span class="p">)</span>
+
+<span class="c1"># Set pixel at coordinates (x=5, y=10) to green (#00FF00)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_pixel</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"00FF00"</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_pixel<span class="w"> </span><span class="nv">x</span><span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="nv">color</span><span class="o">=</span>FF0000
+</code></pre></div>
+<h2 id="set_rhythm_mode"><code>set_rhythm_mode</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1854,7 +1872,17 @@
             </details>
     </div>
 
-</div><h2 id="set_rhythm_mode_2"><code>set_rhythm_mode_2</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set rhythm equalizer style 1 with custom level heights (0-15)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_rhythm_mode</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">l1</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">l3</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">l4</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">l5</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">l6</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l7</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">l8</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">l9</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">l10</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">l11</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_rhythm_mode<span class="w"> </span><span class="nv">style</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">l1</span><span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="nv">l2</span><span class="o">=</span><span class="m">8</span><span class="w"> </span><span class="nv">l3</span><span class="o">=</span><span class="m">12</span><span class="w"> </span><span class="nv">l4</span><span class="o">=</span><span class="m">15</span><span class="w"> </span><span class="nv">l5</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">l6</span><span class="o">=</span><span class="m">6</span><span class="w"> </span><span class="nv">l7</span><span class="o">=</span><span class="m">3</span><span class="w"> </span><span class="nv">l8</span><span class="o">=</span><span class="m">8</span><span class="w"> </span><span class="nv">l9</span><span class="o">=</span><span class="m">12</span><span class="w"> </span><span class="nv">l10</span><span class="o">=</span><span class="m">14</span><span class="w"> </span><span class="nv">l11</span><span class="o">=</span><span class="m">5</span>
+</code></pre></div>
+<h2 id="set_rhythm_mode_2"><code>set_rhythm_mode_2</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -2028,7 +2056,13 @@
             </details>
     </div>
 
-</div><h2 id="set_timer"><code>set_timer</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set alternative rhythm mode (style 0 or 1, animation time 0-7)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_rhythm_mode_2</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_rhythm_mode_2<span class="w"> </span><span class="nv">style</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">t</span><span class="o">=</span><span class="m">3</span>
+</code></pre></div>
+<h2 id="set_timer"><code>set_timer</code></h2>
 <p>Controls the timer (stopwatch) mode on the device.</p>
 
 

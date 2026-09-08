@@ -1240,7 +1240,11 @@
 <p>Find your device's MAC address by scanning for nearby Bluetooth devices:</p>
 <div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>--scan
 </code></pre></div>
-<p><img alt="Scan for devices" src="../../assets/gifs/scan.gif" /></p>
+<video controls width="100%" preload="metadata">
+      <source src="../../assets/videos/scan.webm" type="video/mp4">
+      Your browser doesn't support videos.
+    </video>
+
 <p>If your device is found, take note of its MAC address (e.g., <code>30:E1:AF:BD:5F:D0</code>).</p>
 <div class="highlight"><pre><span></span><code>% pypixelcolor --scan
 [INFO] Scanning for Bluetooth devices...
@@ -1255,22 +1259,6 @@
 <p>CLI commands are sent using the <code>-c</code> option, along with the <code>-a</code> or <code>--address</code> option to specify the target device's MAC address.</p>
 <p>For instance, to send a text message to your device, use the following command, replacing the MAC address with your device's MAC address:</p>
 <div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello pypixelcolor"</span>
-</code></pre></div>
-<p>You can also use inline color tags and specify custom parameters or fonts:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Send multi-colored text</span>
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"[#ff0000]Hello[/] [#00ff00]pypixelcolor[/]"</span>
-
-<span class="c1"># Send text using a custom Font file</span>
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello"</span><span class="w"> </span><span class="nv">font</span><span class="o">=</span><span class="s2">"/path/to/font.ttf"</span><span class="w"> </span><span class="nv">animation</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">speed</span><span class="o">=</span><span class="m">100</span>
-</code></pre></div>
-<p>You can also control timers or update scoreboard scores:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Start or pause the timer</span>
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_timer<span class="w"> </span>start
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_timer<span class="w"> </span>pause
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_timer<span class="w"> </span>stop
-
-<span class="c1"># Set scores for player 1 and player 2</span>
-pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_scores<span class="w"> </span><span class="nv">score_p1</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">score_p2</span><span class="o">=</span><span class="m">7</span>
 </code></pre></div>
 <p>For more information on available commands, refer to the <a href="../../commands/content/">Commands</a> page.</p>
 <h2 id="logging-and-troubleshooting">Logging and Troubleshooting</h2>

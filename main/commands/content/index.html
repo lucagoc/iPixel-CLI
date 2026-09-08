@@ -738,10 +738,38 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#font-selection" class="md-nav__link">
+  <a href="#font-configuration-fontconfig" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Font Selection
+        Font Configuration (<code>FontConfig</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Font Configuration (FontConfig)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Usage Examples
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variable-width-var_width" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Variable Width (<code>var_width</code>)
       </span>
     </span>
   </a>
@@ -1253,10 +1281,38 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#font-selection" class="md-nav__link">
+  <a href="#font-configuration-fontconfig" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Font Selection
+        Font Configuration (<code>FontConfig</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Font Configuration (FontConfig)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Usage Examples
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variable-width-var_width" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Variable Width (<code>var_width</code>)
       </span>
     </span>
   </a>
@@ -1479,7 +1535,25 @@ to match the target device dimensions if necessary.</p>
             </details>
     </div>
 
-</div><h2 id="send_image_hex"><code>send_image_hex</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResizeMethod</span>
+
+<span class="c1"># Send a static image (PNG, JPG, BMP, etc.)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_image</span><span class="p">(</span><span class="s2">"banner.png"</span><span class="p">)</span>
+
+<span class="c1"># Send an animated GIF with fit mode (preserves aspect ratio with black padding)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_image</span><span class="p">(</span><span class="s2">"animation.gif"</span><span class="p">,</span> <span class="n">resize_method</span><span class="o">=</span><span class="n">ResizeMethod</span><span class="o">.</span><span class="n">FIT</span><span class="p">)</span>
+
+<span class="c1"># Send an image and save it to slot 1</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_image</span><span class="p">(</span><span class="s2">"icon.png"</span><span class="p">,</span> <span class="n">save_slot</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Send an image</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_image<span class="w"> </span>banner.png
+
+<span class="c1"># Send an animated GIF with fit mode and save to slot 1</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_image<span class="w"> </span>animation.gif<span class="w"> </span><span class="nv">resize_method</span><span class="o">=</span>fit<span class="w"> </span><span class="nv">save_slot</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<h2 id="send_image_hex"><code>send_image_hex</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1648,8 +1722,30 @@ to match the target device dimensions if necessary.</p>
             </details>
     </div>
 
-</div><h2 id="send_text"><code>send_text</code></h2>
-<p><img alt="Send Text" src="../../assets/gifs/send_text.gif" /></p>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResizeMethod</span>
+
+<span class="c1"># Send an image from hex-encoded PNG data</span>
+<span class="n">hex_data</span> <span class="o">=</span> <span class="s2">"89504e470d0a1a0a0000000d49484452..."</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_image_hex</span><span class="p">(</span><span class="n">hex_string</span><span class="o">=</span><span class="n">hex_data</span><span class="p">,</span> <span class="n">file_extension</span><span class="o">=</span><span class="s2">".png"</span><span class="p">)</span>
+
+<span class="c1"># Send animated GIF hex data with fit mode and save to slot 2</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_image_hex</span><span class="p">(</span>
+    <span class="n">hex_string</span><span class="o">=</span><span class="s2">"474946383961..."</span><span class="p">,</span>
+    <span class="n">file_extension</span><span class="o">=</span><span class="s2">".gif"</span><span class="p">,</span>
+    <span class="n">resize_method</span><span class="o">=</span><span class="n">ResizeMethod</span><span class="o">.</span><span class="n">FIT</span><span class="p">,</span>
+    <span class="n">save_slot</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Send image from hex data</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_image_hex<span class="w"> </span><span class="s2">"&lt;HEX_STRING&gt;"</span><span class="w"> </span>.png
+</code></pre></div>
+<h2 id="send_text"><code>send_text</code></h2>
+<video controls width="100%" preload="metadata">
+      <source src="../../assets/videos/send_text.mp4" type="video/mp4">
+      Your browser doesn't support videos.
+    </video>
+
 
 
 <div class="doc doc-object doc-function">
@@ -1795,7 +1891,7 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Font name, file path, or FontConfig. Defaults to "UNIFONT".</p>
+                <p>Font name, file path, key-value string, or FontConfig. Defaults to "UNIFONT".</p>
               </div>
             </td>
             <td>
@@ -1812,70 +1908,6 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
             <td>
               <div class="doc-md-description">
                 <p>Character height. Auto-detected from device_info if not specified.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>font_size</code>
-            </td>
-            <td>
-                  <code><span title="int">int</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Manual font size override.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>font_offset</code>
-            </td>
-            <td>
-                  <code><span title="tuple">tuple</span>[<span title="int">int</span>, <span title="int">int</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Manual font offset override (x, y).</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>pixel_threshold</code>
-            </td>
-            <td>
-                  <code><span title="int">int</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Manual pixel threshold override (0-255).</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>var_width</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Override variable width mode.</p>
               </div>
             </td>
             <td>
@@ -2032,40 +2064,7 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="normal">179</span>
 <span class="normal">180</span>
 <span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span>
-<span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span>
-<span class="normal">202</span>
-<span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
               <span class="n">rainbow_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
               <span class="n">animation</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TextAnimation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">TextAnimation</span><span class="o">.</span><span class="n">STATIC</span><span class="p">,</span>
               <span class="n">save_slot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -2074,10 +2073,6 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
               <span class="n">bg_color</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">font</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FontConfig</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"UNIFONT"</span><span class="p">,</span>
               <span class="n">char_height</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">font_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">font_offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">pixel_threshold</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">var_width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">device_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DeviceInfo</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
               <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SendPlan</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -2092,12 +2087,8 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="sd">        speed (int, optional): Animation speed (0-100). Defaults to 80.</span>
 <span class="sd">        color (str, optional): Default text color in hex. Defaults to "ffffff".</span>
 <span class="sd">        bg_color (str, optional): Background color in hex (e.g., "ff0000"). Defaults to None.</span>
-<span class="sd">        font (str | FontConfig, optional): Font name, file path, or FontConfig. Defaults to "UNIFONT".</span>
+<span class="sd">        font (str | FontConfig, optional): Font name, file path, key-value string, or FontConfig. Defaults to "UNIFONT".</span>
 <span class="sd">        char_height (int, optional): Character height. Auto-detected from device_info if not specified.</span>
-<span class="sd">        font_size (int, optional): Manual font size override.</span>
-<span class="sd">        font_offset (tuple[int, int], optional): Manual font offset override (x, y).</span>
-<span class="sd">        pixel_threshold (int, optional): Manual pixel threshold override (0-255).</span>
-<span class="sd">        var_width (bool, optional): Override variable width mode.</span>
 <span class="sd">        device_info (DeviceInfo, optional): Device information (injected automatically).</span>
 
 <span class="sd">    Raises:</span>
@@ -2117,42 +2108,17 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 
     <span class="n">char_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">char_height</span><span class="p">)</span>
 
-    <span class="c1"># 2. Resolve rendering parameters into a RenderContext</span>
-    <span class="k">if</span> <span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_size</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">font_config</span><span class="o">.</span><span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_config</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resolved_font_size</span> <span class="o">=</span> <span class="n">char_height</span>
-
-    <span class="k">if</span> <span class="n">font_offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">font_offset</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">cleaned</span> <span class="o">=</span> <span class="n">font_offset</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"()[] "</span><span class="p">)</span>
-            <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cleaned</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)]</span>
-            <span class="n">resolved_offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">resolved_offset</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">font_offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resolved_offset</span> <span class="o">=</span> <span class="n">font_config</span><span class="o">.</span><span class="n">offset</span>
-
-    <span class="k">if</span> <span class="n">pixel_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">resolved_threshold</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pixel_threshold</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resolved_threshold</span> <span class="o">=</span> <span class="n">font_config</span><span class="o">.</span><span class="n">pixel_threshold</span>
-
+    <span class="c1"># 2. Build RenderContext from FontConfig</span>
     <span class="n">context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span>
         <span class="n">char_height</span><span class="o">=</span><span class="n">char_height</span><span class="p">,</span>
         <span class="n">font_path</span><span class="o">=</span><span class="n">font_config</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-        <span class="n">font_size</span><span class="o">=</span><span class="n">resolved_font_size</span><span class="p">,</span>
-        <span class="n">font_offset</span><span class="o">=</span><span class="n">resolved_offset</span><span class="p">,</span>
-        <span class="n">pixel_threshold</span><span class="o">=</span><span class="n">resolved_threshold</span><span class="p">,</span>
+        <span class="n">font_size</span><span class="o">=</span><span class="n">font_config</span><span class="o">.</span><span class="n">font_size</span> <span class="k">if</span> <span class="n">font_config</span><span class="o">.</span><span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">char_height</span><span class="p">,</span>
+        <span class="n">font_offset</span><span class="o">=</span><span class="n">font_config</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
+        <span class="n">pixel_threshold</span><span class="o">=</span><span class="n">font_config</span><span class="o">.</span><span class="n">pixel_threshold</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="c1"># 3. Resolve var_width mode</span>
-    <span class="k">if</span> <span class="n">var_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">resolved_var_width</span> <span class="o">=</span> <span class="n">var_width</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"true"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">,</span> <span class="s2">"yes"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var_width</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">var_width</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resolved_var_width</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">font_config</span><span class="o">.</span><span class="n">var_width</span><span class="p">)</span>
+    <span class="n">resolved_var_width</span> <span class="o">=</span> <span class="n">font_config</span><span class="o">.</span><span class="n">var_width</span>
+
 
     <span class="c1"># 4. Handle inline color tags</span>
     <span class="k">if</span> <span class="n">resolved_var_width</span><span class="p">:</span>
@@ -2208,7 +2174,30 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
             </details>
     </div>
 
-</div><h3 id="inline-color-tags">Inline Color Tags</h3>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextAnimation</span>
+
+<span class="c1"># Simple static text</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello World!"</span><span class="p">)</span>
+
+<span class="c1"># Scrolling text with custom color and animation speed</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span>
+    <span class="s2">"Welcome to pypixelcolor!"</span><span class="p">,</span>
+    <span class="n">animation</span><span class="o">=</span><span class="n">TextAnimation</span><span class="o">.</span><span class="n">SCROLL_LEFT</span><span class="p">,</span>
+    <span class="n">speed</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"00ff00"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Text with background color, saved to slot 1</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"ALERT"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"ffffff"</span><span class="p">,</span> <span class="n">bg_color</span><span class="o">=</span><span class="s2">"ff0000"</span><span class="p">,</span> <span class="n">save_slot</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Send static text</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello World!"</span>
+
+<span class="c1"># Scrolling text with custom color and speed</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Welcome!"</span><span class="w"> </span><span class="nv">animation</span><span class="o">=</span>scroll_left<span class="w"> </span><span class="nv">speed</span><span class="o">=</span><span class="m">90</span><span class="w"> </span><span class="nv">color</span><span class="o">=</span>00ff00
+</code></pre></div>
+<h3 id="inline-color-tags">Inline Color Tags</h3>
 <p><code>send_text</code> supports inline hex color tags to style individual words or characters:</p>
 <ul>
 <li>Opening tag: <code>[#RRGGBB]</code> or <code>[RRGGBB]</code></li>
@@ -2296,13 +2285,82 @@ If emojis are included in the text, they will be rendered using Twemoji.</p>
 <span class="c1"># Using string name</span>
 <span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Alert!"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="s2">"blink"</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="font-selection">Font Selection</h3>
-<p>The <code>font</code> argument supports multiple formats:</p>
+<h3 id="font-configuration-fontconfig">Font Configuration (<code>FontConfig</code>)</h3>
+<p>The <code>font</code> argument controls typography. It accepts a <code>FontConfig</code> instance (Python) or a configuration string (Python &amp; CLI):</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>path</code></td>
+<td><code>str</code></td>
+<td>Built-in UNIFONT</td>
+<td>Path to a local <code>.ttf</code> or <code>.otf</code> file.</td>
+</tr>
+<tr>
+<td><code>font_size</code></td>
+<td><code>int</code></td>
+<td><code>char_height</code></td>
+<td>Font rendering size in pixels.</td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td><code>tuple[int, int]</code></td>
+<td><code>(0, 0)</code></td>
+<td>Rendering offset <code>(x, y)</code>.</td>
+</tr>
+<tr>
+<td><code>pixel_threshold</code></td>
+<td><code>int</code></td>
+<td><code>128</code></td>
+<td>Binarization threshold (<code>0-255</code>).</td>
+</tr>
+<tr>
+<td><code>var_width</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Enable variable-width rendering for proportional fonts.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="usage-examples">Usage Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">FontConfig</span>
+
+<span class="c1"># 1. Default font with variable-width</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">FontConfig</span><span class="p">(</span><span class="n">var_width</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+<span class="c1"># 2. Custom font from file</span>
+<span class="n">font</span> <span class="o">=</span> <span class="n">FontConfig</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">"./fonts/retro.ttf"</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">var_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+
+<span class="c1"># 3. Inline key-value string</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span><span class="s2">"Hello"</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s2">"path=./fonts/retro.ttf,font_size=16,var_width=true"</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Default font with variable-width</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello"</span><span class="w"> </span><span class="nv">font</span><span class="o">=</span><span class="nv">var_width</span><span class="o">=</span><span class="nb">true</span>
+
+<span class="c1"># Custom font file</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello"</span><span class="w"> </span><span class="nv">font</span><span class="o">=</span>./retro.ttf
+
+<span class="c1"># Custom font with options</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>send_text<span class="w"> </span><span class="s2">"Hello"</span><span class="w"> </span><span class="nv">font</span><span class="o">=</span><span class="s2">"path=./retro.ttf,font_size=16,var_width=true"</span>
+</code></pre></div>
+<h3 id="variable-width-var_width">Variable Width (<code>var_width</code>)</h3>
+<p>By default (<code>var_width=False</code>), each character is placed in a fixed-width slot (best for monospace fonts like UNIFONT). For proportional fonts, setting <code>var_width=True</code> renders text on a continuous canvas with natural kerning before slicing it into matrix chunks.</p>
+<p><img alt="Variable Width Rendering" src="../../assets/pngs/var_width.png" /></p>
+<div class="admonition warning">
+<p class="admonition-title">Limitations</p>
 <ul>
-<li><strong>Built-in Font</strong>: <code>"UNIFONT"</code> (default GNU Unifont with comprehensive Unicode and CJK glyph support).</li>
-<li><strong>Local Font Path</strong>: Provide a relative or absolute path to a <code>.ttf</code> or <code>.otf</code> file (e.g. <code>font="./Minecraft.ttf"</code>).</li>
-<li><strong>FontConfig</strong>: Pass a <code>FontConfig</code> object (e.g. <code>FontConfig.from_file("./Minecraft.ttf", font_size=16)</code>).</li>
+<li><strong>Static text truncation</strong>: With <code>animation=0</code> (<code>STATIC</code>), non-scrolling text exceeding screen width will be cut off. Use <code>scroll_left</code> for long text.</li>
+<li><strong>Inline color tags</strong>: Color tags (<code>[#ff0000]...[/]</code>) are not supported with <code>var_width=True</code> (they will be stripped with a warning and the uniform <code>color</code> used).</li>
 </ul>
+</div>
 
 
 

@@ -1345,7 +1345,20 @@
             </details>
     </div>
 
-</div><h2 id="set_brightness"><code>set_brightness</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Turn on the display</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_power</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Turn off the display</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_power</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Turn on the display</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_power<span class="w"> </span><span class="nb">true</span>
+
+<span class="c1"># Turn off the display</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_power<span class="w"> </span><span class="nb">false</span>
+</code></pre></div>
+<h2 id="set_brightness"><code>set_brightness</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1428,7 +1441,16 @@
             </details>
     </div>
 
-</div><h2 id="set_orientation"><code>set_orientation</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set brightness to 50%</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="c1"># Set maximum brightness (100%)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_brightness<span class="w"> </span><span class="m">50</span>
+</code></pre></div>
+<h2 id="set_orientation"><code>set_orientation</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1515,7 +1537,16 @@
             </details>
     </div>
 
-</div><h2 id="set_schedule"><code>set_schedule</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Set default orientation (0: 0°)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_orientation</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Rotate display (0: 0°, 1: 90°, 2: 180°, 3: 270°)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_orientation</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_orientation<span class="w"> </span><span class="m">2</span>
+</code></pre></div>
+<h2 id="set_schedule"><code>set_schedule</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1749,7 +1780,31 @@
             </details>
     </div>
 
-</div>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pypixelcolor</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleDay</span>
+
+<span class="c1"># Turn ON at 08:00 every day (slot 0)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_schedule</span><span class="p">(</span><span class="n">hour</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slot</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Turn OFF at 23:00 on weekdays using ScheduleDay bitmask (slot 1)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_schedule</span><span class="p">(</span>
+    <span class="n">hour</span><span class="o">=</span><span class="mi">23</span><span class="p">,</span>
+    <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">days</span><span class="o">=</span><span class="n">ScheduleDay</span><span class="o">.</span><span class="n">MON</span> <span class="o">|</span> <span class="n">ScheduleDay</span><span class="o">.</span><span class="n">TUE</span> <span class="o">|</span> <span class="n">ScheduleDay</span><span class="o">.</span><span class="n">WED</span> <span class="o">|</span> <span class="n">ScheduleDay</span><span class="o">.</span><span class="n">THU</span> <span class="o">|</span> <span class="n">ScheduleDay</span><span class="o">.</span><span class="n">FRI</span><span class="p">,</span>
+    <span class="n">slot</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Turn ON at 10:00 on weekends using string list (slot 2)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_schedule</span><span class="p">(</span><span class="n">hour</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="p">[</span><span class="s2">"sat"</span><span class="p">,</span> <span class="s2">"sun"</span><span class="p">],</span> <span class="n">slot</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Turn ON at 08:00 every day</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_schedule<span class="w"> </span><span class="nv">hour</span><span class="o">=</span><span class="m">8</span><span class="w"> </span><span class="nv">minute</span><span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="nv">on</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="nv">slot</span><span class="o">=</span><span class="m">0</span>
+
+<span class="c1"># Turn OFF at 23:00 on weekends</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_schedule<span class="w"> </span><span class="nv">hour</span><span class="o">=</span><span class="m">23</span><span class="w"> </span><span class="nv">minute</span><span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="nv">on</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="nv">days</span><span class="o">=</span>sat,sun<span class="w"> </span><span class="nv">slot</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+
 
 <div class="doc doc-object doc-class">
 

@@ -1273,7 +1273,13 @@ Before sending data to a slot, make sure that sending works correctly without us
             </details>
     </div>
 
-</div><h2 id="show_slot"><code>show_slot</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clear all device ROM data and settings</span>
+<span class="n">client</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>clear
+</code></pre></div>
+<h2 id="show_slot"><code>show_slot</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1367,7 +1373,13 @@ Before sending data to a slot, make sure that sending works correctly without us
             </details>
     </div>
 
-</div><h2 id="delete"><code>delete</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Display the content stored in slot 1</span>
+<span class="n">client</span><span class="o">.</span><span class="n">show_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>show_slot<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<h2 id="delete"><code>delete</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1454,7 +1466,12 @@ Before sending data to a slot, make sure that sending works correctly without us
             </details>
     </div>
 
-</div>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Delete content stored in slot 1</span>
+<span class="n">client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>delete<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
 
 
 

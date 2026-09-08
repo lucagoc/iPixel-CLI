@@ -1445,7 +1445,23 @@ Time is set automatically during connection via Bluetooth.</p>
             </details>
     </div>
 
-</div><h2 id="set_time"><code>set_time</code></h2>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable clock mode with default settings (style 1, 24-hour format, current date)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_clock_mode</span><span class="p">()</span>
+
+<span class="c1"># Set clock style 2 in 12-hour format without displaying date</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_clock_mode</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">format_24</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_date</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Display a specific date (DD/MM/YYYY)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_clock_mode</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="s2">"25/12/2026"</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable default clock mode</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_clock_mode
+
+<span class="c1"># Set clock style 2 in 12-hour format</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_clock_mode<span class="w"> </span><span class="nv">style</span><span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="nv">format_24</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="nv">show_date</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div>
+<h2 id="set_time"><code>set_time</code></h2>
 
 
 <div class="doc doc-object doc-function">
@@ -1638,7 +1654,19 @@ Time is set automatically during connection via Bluetooth.</p>
             </details>
     </div>
 
-</div>
+</div><p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Synchronize device time with current local time</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_time</span><span class="p">()</span>
+
+<span class="c1"># Set a specific time (e.g. 14:30:00)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_time</span><span class="p">(</span><span class="n">hour</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Sync device time with current local time</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_time
+
+<span class="c1"># Set a specific time</span>
+pypixelcolor<span class="w"> </span>-a<span class="w"> </span>&lt;MAC_ADDRESS&gt;<span class="w"> </span>-c<span class="w"> </span>set_time<span class="w"> </span><span class="nv">hour</span><span class="o">=</span><span class="m">14</span><span class="w"> </span><span class="nv">minute</span><span class="o">=</span><span class="m">30</span><span class="w"> </span><span class="nv">second</span><span class="o">=</span><span class="m">0</span>
+</code></pre></div>
 
 
 
