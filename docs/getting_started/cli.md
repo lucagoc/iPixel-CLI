@@ -8,7 +8,10 @@ Find your device's MAC address by scanning for nearby Bluetooth devices:
 pypixelcolor --scan
 ```
 
-![Scan for devices](../assets/gifs/scan.gif)
+<video controls width="100%" preload="metadata">
+      <source src="../assets/videos/scan.webm" type="video/mp4">
+      Your browser doesn't support videos.
+    </video>
 
 If your device is found, take note of its MAC address (e.g., `30:E1:AF:BD:5F:D0`).
 
@@ -31,28 +34,6 @@ For instance, to send a text message to your device, use the following command, 
 
 ```bash
 pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello pypixelcolor"
-```
-
-You can also use inline color tags and specify custom parameters or fonts:
-
-```bash
-# Send multi-colored text
-pypixelcolor -a <MAC_ADDRESS> -c send_text "[#ff0000]Hello[/] [#00ff00]pypixelcolor[/]"
-
-# Send text using a custom Font file
-pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello" font="/path/to/font.ttf" animation=1 speed=100
-```
-
-You can also control timers or update scoreboard scores:
-
-```bash
-# Start or pause the timer
-pypixelcolor -a <MAC_ADDRESS> -c set_timer start
-pypixelcolor -a <MAC_ADDRESS> -c set_timer pause
-pypixelcolor -a <MAC_ADDRESS> -c set_timer stop
-
-# Set scores for player 1 and player 2
-pypixelcolor -a <MAC_ADDRESS> -c set_scores score_p1=10 score_p2=7
 ```
 
 For more information on available commands, refer to the [Commands](../commands/content.md) page.

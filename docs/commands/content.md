@@ -9,6 +9,29 @@
       show_root_heading: false
       show_root_toc_entry: false
 
+**Examples:**
+
+```python
+from pypixelcolor import ResizeMethod
+
+# Send a static image (PNG, JPG, BMP, etc.)
+client.send_image("banner.png")
+
+# Send an animated GIF with fit mode (preserves aspect ratio with black padding)
+client.send_image("animation.gif", resize_method=ResizeMethod.FIT)
+
+# Send an image and save it to slot 1
+client.send_image("icon.png", save_slot=1)
+```
+
+```bash
+# Send an image
+pypixelcolor -a <MAC_ADDRESS> -c send_image banner.png
+
+# Send an animated GIF with fit mode and save to slot 1
+pypixelcolor -a <MAC_ADDRESS> -c send_image animation.gif resize_method=fit save_slot=1
+```
+
 ## `send_image_hex`
 
 ::: pypixelcolor.commands.send_image.send_image_hex
@@ -16,14 +39,68 @@
       show_root_heading: false
       show_root_toc_entry: false
 
+**Examples:**
+
+```python
+from pypixelcolor import ResizeMethod
+
+# Send an image from hex-encoded PNG data
+hex_data = "89504e470d0a1a0a0000000d49484452..."
+client.send_image_hex(hex_string=hex_data, file_extension=".png")
+
+# Send animated GIF hex data with fit mode and save to slot 2
+client.send_image_hex(
+    hex_string="474946383961...",
+    file_extension=".gif",
+    resize_method=ResizeMethod.FIT,
+    save_slot=2,
+)
+```
+
+```bash
+# Send image from hex data
+pypixelcolor -a <MAC_ADDRESS> -c send_image_hex "<HEX_STRING>" .png
+```
+
 ## `send_text`
 
-![Send Text](../assets/gifs/send_text.gif)
+<video controls width="100%" preload="metadata">
+      <source src="../assets/videos/send_text.mp4" type="video/mp4">
+      Your browser doesn't support videos.
+    </video>
 
 ::: pypixelcolor.commands.send_text.send_text
     options:
       show_root_heading: false
       show_root_toc_entry: false
+
+**Examples:**
+
+```python
+from pypixelcolor import TextAnimation
+
+# Simple static text
+client.send_text("Hello World!")
+
+# Scrolling text with custom color and animation speed
+client.send_text(
+    "Welcome to pypixelcolor!",
+    animation=TextAnimation.SCROLL_LEFT,
+    speed=90,
+    color="00ff00",
+)
+
+# Text with background color, saved to slot 1
+client.send_text("ALERT", color="ffffff", bg_color="ff0000", save_slot=1)
+```
+
+```bash
+# Send static text
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello World!"
+
+# Scrolling text with custom color and speed
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Welcome!" animation=scroll_left speed=90 color=00ff00
+```
 
 ### Inline Color Tags
 
@@ -72,10 +149,55 @@ client.send_text("Hello", animation=TextAnimation.SCROLL_LEFT)
 client.send_text("Alert!", animation="blink", speed=90)
 ```
 
-### Font Selection
+### Font Configuration (`FontConfig`)
 
-The `font` argument supports multiple formats:
+The `font` argument controls typography. It accepts a `FontConfig` instance (Python) or a configuration string (Python & CLI):
 
-- **Built-in Font**: `"UNIFONT"` (default GNU Unifont with comprehensive Unicode and CJK glyph support).
-- **Local Font Path**: Provide a relative or absolute path to a `.ttf` or `.otf` file (e.g. `font="./Minecraft.ttf"`).
-- **FontConfig**: Pass a `FontConfig` object (e.g. `FontConfig.from_file("./Minecraft.ttf", font_size=16)`).
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `path` | `str` | Built-in UNIFONT | Path to a local `.ttf` or `.otf` file. |
+| `font_size` | `int` | `char_height` | Font rendering size in pixels. |
+| `offset` | `tuple[int, int]` | `(0, 0)` | Rendering offset `(x, y)`. |
+| `pixel_threshold` | `int` | `128` | Binarization threshold (`0-255`). |
+| `var_width` | `bool` | `False` | Enable variable-width rendering for proportional fonts. |
+
+#### Usage Examples
+
+```python
+from pypixelcolor import FontConfig
+
+# 1. Default font with variable-width
+client.send_text("Hello", font=FontConfig(var_width=True))
+
+# 2. Custom font from file
+font = FontConfig.from_file("./fonts/retro.ttf", font_size=16, var_width=True)
+client.send_text("Hello", font=font)
+
+# 3. Inline key-value string
+client.send_text("Hello", font="path=./fonts/retro.ttf,font_size=16,var_width=true")
+```
+
+```bash
+# Default font with variable-width
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello" font=var_width=true
+
+# Custom font file
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello" font=./retro.ttf
+
+# Custom font with options
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Hello" font="path=./retro.ttf,font_size=16,var_width=true"
+```
+
+### Variable Width (`var_width`)
+
+By default (`var_width=False`), each character is placed in a fixed-width slot (best for monospace fonts like UNIFONT). For proportional fonts, setting `var_width=True` renders text on a continuous canvas with natural kerning before slicing it into matrix chunks.
+
+![Variable Width Rendering](../assets/pngs/var_width.png)
+
+!!! warning "Limitations"
+    - **Static text truncation**: With `animation=0` (`STATIC`), non-scrolling text exceeding screen width will be cut off. Use `scroll_left` for long text.
+    - **Inline color tags**: Color tags (`[#ff0000]...[/]`) are not supported with `var_width=True` (they will be stripped with a warning and the uniform `color` used).
+
+
+
+
